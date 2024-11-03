@@ -20,56 +20,56 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef BITSERY_EXT_STD_TUPLE_H
-#define BITSERY_EXT_STD_TUPLE_H
+#ifndef BITSERY_EXT_EASTL_TUPLE_H
+#define BITSERY_EXT_EASTL_TUPLE_H
 
 #include "../traits/core/traits.h"
 #include "utils/composite_type_overloads.h"
-#include <tuple>
+#include <EASTL/tuple.h>
 
 namespace bitsery {
 namespace ext {
 
 template<typename... Overloads>
-class StdTuple
-  : public details::CompositeTypeOverloadsUtils<std::tuple, Overloads...>
+class EastlTuple
+  : public details::CompositeTypeOverloadsUtils<eastl::tuple, Overloads...>
 {
 public:
   template<typename Ser, typename Fnc, typename... Ts>
-  void serialize(Ser& ser, const std::tuple<Ts...>& obj, Fnc&&) const
+  void serialize(Ser& ser, const eastl::tuple<Ts...>& obj, Fnc&&) const
   {
-    serializeAll(ser, const_cast<std::tuple<Ts...>&>(obj));
+    serializeAll(ser, const_cast<eastl::tuple<Ts...>&>(obj));
   }
 
   template<typename Des, typename Fnc, typename... Ts>
-  void deserialize(Des& des, std::tuple<Ts...>& obj, Fnc&&) const
+  void deserialize(Des& des, eastl::tuple<Ts...>& obj, Fnc&&) const
   {
     serializeAll(des, obj);
   }
 
 private:
   template<typename S, typename... Ts>
-  void serializeAll(S& s, std::tuple<Ts...>& obj) const
+  void serializeAll(S& s, eastl::tuple<Ts...>& obj) const
   {
     this->execAll(obj, [this, &s](auto& data, auto index) {
       constexpr size_t Index = decltype(index)::value;
-      this->serializeType(s, std::get<Index>(data));
+      this->serializeType(s, eastl::get<Index>(data));
     });
   }
 };
 
 // deduction guide
 template<typename... Overloads>
-StdTuple(Overloads...) -> StdTuple<Overloads...>;
+EastlTuple(Overloads...) -> EastlTuple<Overloads...>;
 }
 
 namespace traits {
 
 template<typename Tuple, typename... Overloads>
-struct ExtensionTraits<ext::StdTuple<Overloads...>, Tuple>
+struct ExtensionTraits<ext::EastlTuple<Overloads...>, Tuple>
 {
-  static_assert(bitsery::details::IsSpecializationOf<Tuple, std::tuple>::value,
-                "StdTuple only works with std::tuple");
+  static_assert(bitsery::details::IsSpecializationOf<Tuple, eastl::tuple>::value,
+                "EastlTuple only works with eastl::tuple");
   using TValue = void;
   static constexpr bool SupportValueOverload = false;
   static constexpr bool SupportObjectOverload = true;
@@ -80,4 +80,4 @@ struct ExtensionTraits<ext::StdTuple<Overloads...>, Tuple>
 
 }
 
-#endif // BITSERY_EXT_STD_TUPLE_H
+#endif // BITSERY_EXT_EASTL_TUPLE_H

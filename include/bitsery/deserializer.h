@@ -49,13 +49,13 @@ public:
   void object(T&& obj)
   {
     details::SerializeFunction<Deserializer, T>::invoke(*this,
-                                                        std::forward<T>(obj));
+                                                        eastl::forward<T>(obj));
   }
 
   template<typename T, typename Fnc>
   void object(T&& obj, Fnc&& fnc)
   {
-    fnc(*this, std::forward<T>(obj));
+    fnc(*this, eastl::forward<T>(obj));
   }
 
   /*
@@ -66,7 +66,7 @@ public:
   template<typename... TArgs>
   Deserializer& operator()(TArgs&&... args)
   {
-    archive(std::forward<TArgs>(args)...);
+    archive(eastl::forward<TArgs>(args)...);
     return *this;
   }
 
@@ -90,8 +90,8 @@ public:
   void enableBitPacking(Fnc&& fnc)
   {
     procEnableBitPacking(
-      std::forward<Fnc>(fnc),
-      std::is_same<TInputAdapter, typename TInputAdapter::BitPackingEnabled>{});
+      eastl::forward<Fnc>(fnc),
+      eastl::is_same<TInputAdapter, typename TInputAdapter::BitPackingEnabled>{});
   }
 
   /*
@@ -105,7 +105,7 @@ public:
                   "Please define ExtensionTraits");
     static_assert(traits::ExtensionTraits<Ext, T>::SupportLambdaOverload,
                   "extension doesn't support overload with lambda");
-    extension.deserialize(*this, obj, std::forward<Fnc>(fnc));
+    extension.deserialize(*this, obj, eastl::forward<Fnc>(fnc));
   }
 
   template<size_t VSIZE, typename T, typename Ext>
@@ -116,7 +116,7 @@ public:
     static_assert(traits::ExtensionTraits<Ext, T>::SupportValueOverload,
                   "extension doesn't support overload with `value<N>`");
     using ExtVType = typename traits::ExtensionTraits<Ext, T>::TValue;
-    using VType = typename std::conditional<std::is_void<ExtVType>::value,
+    using VType = typename eastl::conditional<eastl::is_void<ExtVType>::value,
                                             details::DummyType,
                                             ExtVType>::type;
     extension.deserialize(
@@ -131,7 +131,7 @@ public:
     static_assert(traits::ExtensionTraits<Ext, T>::SupportObjectOverload,
                   "extension doesn't support overload with `object`");
     using ExtVType = typename traits::ExtensionTraits<Ext, T>::TValue;
-    using VType = typename std::conditional<std::is_void<ExtVType>::value,
+    using VType = typename eastl::conditional<eastl::is_void<ExtVType>::value,
                                             details::DummyType,
                                             ExtVType>::type;
     extension.deserialize(
@@ -145,8 +145,8 @@ public:
   {
     procBoolValue(
       v,
-      std::is_same<TInputAdapter, typename TInputAdapter::BitPackingEnabled>{},
-      std::integral_constant<bool, TInputAdapter::TConfig::CheckDataErrors>{});
+      eastl::is_same<TInputAdapter, typename TInputAdapter::BitPackingEnabled>{},
+      eastl::integral_constant<bool, TInputAdapter::TConfig::CheckDataErrors>{});
   }
 
   /*
@@ -201,7 +201,7 @@ public:
     size_t size{};
     readSize(size, maxSize);
     traits::ContainerTraits<T>::resize(obj, size);
-    procContainer(std::begin(obj), std::end(obj), std::forward<Fnc>(fnc));
+    procContainer(eastl::begin(obj), eastl::end(obj), eastl::forward<Fnc>(fnc));
   }
 
   template<size_t VSIZE, typename T>
@@ -217,9 +217,9 @@ public:
     readSize(size, maxSize);
     traits::ContainerTraits<T>::resize(obj, size);
     procContainer<VSIZE>(
-      std::begin(obj),
-      std::end(obj),
-      std::integral_constant<bool, traits::ContainerTraits<T>::isContiguous>{});
+      eastl::begin(obj),
+      eastl::end(obj),
+      eastl::integral_constant<bool, traits::ContainerTraits<T>::isContiguous>{});
   }
 
   template<typename T>
@@ -234,14 +234,14 @@ public:
     size_t size{};
     readSize(size, maxSize);
     traits::ContainerTraits<T>::resize(obj, size);
-    procContainer(std::begin(obj), std::end(obj));
+    procContainer(eastl::begin(obj), eastl::end(obj));
   }
   // fixed size containers
 
   template<
     typename T,
     typename Fnc,
-    typename std::enable_if<!std::is_integral<Fnc>::value>::type* = nullptr>
+    typename eastl::enable_if<!eastl::is_integral<Fnc>::value>::type* = nullptr>
   void container(T& obj, Fnc&& fnc)
   {
     static_assert(
@@ -250,7 +250,7 @@ public:
     static_assert(!traits::ContainerTraits<T>::isResizable,
                   "use container(T&, size_t, Fnc) overload with `maxSize` for "
                   "dynamic containers");
-    procContainer(std::begin(obj), std::end(obj), std::forward<Fnc>(fnc));
+    procContainer(eastl::begin(obj), eastl::end(obj), eastl::forward<Fnc>(fnc));
   }
 
   template<size_t VSIZE, typename T>
@@ -264,9 +264,9 @@ public:
                   "dynamic containers");
     static_assert(VSIZE > 0, "");
     procContainer<VSIZE>(
-      std::begin(obj),
-      std::end(obj),
-      std::integral_constant<bool, traits::ContainerTraits<T>::isContiguous>{});
+      eastl::begin(obj),
+      eastl::end(obj),
+      eastl::integral_constant<bool, traits::ContainerTraits<T>::isContiguous>{});
   }
 
   template<typename T>
@@ -278,7 +278,7 @@ public:
     static_assert(!traits::ContainerTraits<T>::isResizable,
                   "use container(T&, size_t) overload with `maxSize` for "
                   "dynamic containers");
-    procContainer(std::begin(obj), std::end(obj));
+    procContainer(eastl::begin(obj), eastl::end(obj));
   }
 
   // overloads for functions with explicit type size
@@ -286,61 +286,61 @@ public:
   template<typename T>
   void value1b(T&& v)
   {
-    value<1>(std::forward<T>(v));
+    value<1>(eastl::forward<T>(v));
   }
 
   template<typename T>
   void value2b(T&& v)
   {
-    value<2>(std::forward<T>(v));
+    value<2>(eastl::forward<T>(v));
   }
 
   template<typename T>
   void value4b(T&& v)
   {
-    value<4>(std::forward<T>(v));
+    value<4>(eastl::forward<T>(v));
   }
 
   template<typename T>
   void value8b(T&& v)
   {
-    value<8>(std::forward<T>(v));
+    value<8>(eastl::forward<T>(v));
   }
 
   template<typename T>
   void value16b(T&& v)
   {
-    value<16>(std::forward<T>(v));
+    value<16>(eastl::forward<T>(v));
   }
 
   template<typename T, typename Ext>
   void ext1b(T& v, Ext&& extension)
   {
-    ext<1, T, Ext>(v, std::forward<Ext>(extension));
+    ext<1, T, Ext>(v, eastl::forward<Ext>(extension));
   }
 
   template<typename T, typename Ext>
   void ext2b(T& v, Ext&& extension)
   {
-    ext<2, T, Ext>(v, std::forward<Ext>(extension));
+    ext<2, T, Ext>(v, eastl::forward<Ext>(extension));
   }
 
   template<typename T, typename Ext>
   void ext4b(T& v, Ext&& extension)
   {
-    ext<4, T, Ext>(v, std::forward<Ext>(extension));
+    ext<4, T, Ext>(v, eastl::forward<Ext>(extension));
   }
 
   template<typename T, typename Ext>
   void ext8b(T& v, Ext&& extension)
   {
-    ext<8, T, Ext>(v, std::forward<Ext>(extension));
+    ext<8, T, Ext>(v, eastl::forward<Ext>(extension));
   }
 
   template<typename T, typename Ext>
   void ext16b(T& v, Ext&& extension)
   {
-    ext<16, T, Ext>(v, std::forward<Ext>(extension));
+    ext<16, T, Ext>(v, eastl::forward<Ext>(extension));
   }
 
   template<typename T>
@@ -382,61 +382,61 @@ public:
   template<typename T>
   void container1b(T&& obj, size_t maxSize)
   {
-    container<1>(std::forward<T>(obj), maxSize);
+    container<1>(eastl::forward<T>(obj), maxSize);
   }
 
   template<typename T>
   void container2b(T&& obj, size_t maxSize)
   {
-    container<2>(std::forward<T>(obj), maxSize);
+    container<2>(eastl::forward<T>(obj), maxSize);
   }
 
   template<typename T>
   void container4b(T&& obj, size_t maxSize)
   {
-    container<4>(std::forward<T>(obj), maxSize);
+    container<4>(eastl::forward<T>(obj), maxSize);
   }
 
   template<typename T>
   void container8b(T&& obj, size_t maxSize)
   {
-    container<8>(std::forward<T>(obj), maxSize);
+    container<8>(eastl::forward<T>(obj), maxSize);
   }
 
   template<typename T>
   void container16b(T&& obj, size_t maxSize)
   {
-    container<16>(std::forward<T>(obj), maxSize);
+    container<16>(eastl::forward<T>(obj), maxSize);
   }
 
   template<typename T>
   void container1b(T&& obj)
   {
-    container<1>(std::forward<T>(obj));
+    container<1>(eastl::forward<T>(obj));
   }
 
   template<typename T>
   void container2b(T&& obj)
   {
-    container<2>(std::forward<T>(obj));
+    container<2>(eastl::forward<T>(obj));
   }
 
   template<typename T>
   void container4b(T&& obj)
   {
-    container<4>(std::forward<T>(obj));
+    container<4>(eastl::forward<T>(obj));
   }
 
   template<typename T>
   void container8b(T&& obj)
   {
-    container<8>(std::forward<T>(obj));
+    container<8>(eastl::forward<T>(obj));
   }
 
   template<typename T>
   void container16b(T&& obj)
   {
-    container<16>(std::forward<T>(obj));
+    container<16>(eastl::forward<T>(obj));
   }
 
 private:
@@ -446,13 +446,13 @@ private:
       this->_adapter,
       size,
       maxSize,
-      std::integral_constant<bool, TInputAdapter::TConfig::CheckDataErrors>{});
+      eastl::integral_constant<bool, TInputAdapter::TConfig::CheckDataErrors>{});
   }
 
   // process value types
   // false_type means that we must process all elements individually
   template<size_t VSIZE, typename It>
-  void procContainer(It first, It last, std::false_type)
+  void procContainer(It first, It last, eastl::false_type)
   {
     for (; first != last; ++first)
       value<VSIZE>(*first);
@@ -461,12 +461,12 @@ private:
   // process value types
   // true_type means, that we can copy whole buffer
   template<size_t VSIZE, typename It>
-  void procContainer(It first, It last, std::true_type)
+  void procContainer(It first, It last, eastl::true_type)
   {
-    using TValue = typename std::decay<decltype(*first)>::type;
+    using TValue = typename eastl::decay<decltype(*first)>::type;
     using TIntegral = typename details::IntegralFromFundamental<TValue>::TValue;
     if (first != last) {
-      const auto distance = std::distance(first, last);
+      const auto distance = eastl::distance(first, last);
       this->_adapter.template readBuffer<VSIZE>(
         reinterpret_cast<TIntegral*>(&(*first)), static_cast<size_t>(distance));
     }
@@ -491,15 +491,15 @@ private:
   template<size_t VSIZE, typename T>
   void procText(T& str, size_t length)
   {
-    auto begin = std::begin(str);
+    auto begin = eastl::begin(str);
     // end of string, not end of container
     using diff_t =
-      typename std::iterator_traits<decltype(begin)>::difference_type;
-    auto end = std::next(begin, static_cast<diff_t>(length));
+      typename eastl::iterator_traits<decltype(begin)>::difference_type;
+    auto end = eastl::next(begin, static_cast<diff_t>(length));
     procContainer<VSIZE>(
       begin,
       end,
-      std::integral_constant<bool, traits::ContainerTraits<T>::isContiguous>{});
+      eastl::integral_constant<bool, traits::ContainerTraits<T>::isContiguous>{});
     // null terminated character at the end
     if (traits::TextTraits<T>::addNUL)
       *end = {};
@@ -507,14 +507,14 @@ private:
 
   // proc bool writing bit or byte, depending on if BitPackingEnabled or not
   template<typename HandleDataErrors>
-  void procBoolValue(bool& v, std::true_type, HandleDataErrors)
+  void procBoolValue(bool& v, eastl::true_type, HandleDataErrors)
   {
     uint8_t tmp{};
     this->_adapter.readBits(tmp, 1);
     v = tmp == 1;
   }
 
-  void procBoolValue(bool& v, std::false_type, std::true_type)
+  void procBoolValue(bool& v, eastl::false_type, eastl::true_type)
   {
     uint8_t tmp{};
     this->_adapter.template readBytes<1>(tmp);
@@ -523,7 +523,7 @@ private:
     v = tmp == 1;
   }
 
-  void procBoolValue(bool& v, std::false_type, std::false_type)
+  void procBoolValue(bool& v, eastl::false_type, eastl::false_type)
   {
     uint8_t tmp{};
     this->_adapter.template readBytes<1>(tmp);
@@ -532,25 +532,25 @@ private:
 
   // enable bit-packing or do nothing if it is already enabled
   template<typename Fnc>
-  void procEnableBitPacking(const Fnc& fnc, std::true_type)
+  void procEnableBitPacking(const Fnc& fnc, eastl::true_type)
   {
     fnc(*this);
   }
 
   template<typename Fnc>
-  void procEnableBitPacking(const Fnc& fnc, std::false_type)
+  void procEnableBitPacking(const Fnc& fnc, eastl::false_type)
   {
     auto des = createWithContext(
-      std::integral_constant<bool, Deserializer::HasContext>{});
+      eastl::integral_constant<bool, Deserializer::HasContext>{});
     fnc(des);
   }
 
-  BPEnabledType createWithContext(std::true_type)
+  BPEnabledType createWithContext(eastl::true_type)
   {
     return BPEnabledType{ this->_context, this->_adapter };
   }
 
-  BPEnabledType createWithContext(std::false_type)
+  BPEnabledType createWithContext(eastl::false_type)
   {
     return BPEnabledType{ this->_adapter };
   }
@@ -568,9 +568,9 @@ private:
   {
     // serialize object
     details::BriefSyntaxFunction<Deserializer, T>::invoke(
-      *this, std::forward<T>(head));
+      *this, eastl::forward<T>(head));
     // expand other elements
-    archive(std::forward<TArgs>(tail)...);
+    archive(eastl::forward<TArgs>(tail)...);
   }
 
   // dummy function, that stops archive variadic arguments expansion
@@ -582,19 +582,19 @@ private:
 // helper function that set ups all the basic steps and after deserialziation
 // returns status
 template<typename InputAdapter, typename T>
-std::pair<ReaderError, bool>
+eastl::pair<ReaderError, bool>
 quickDeserialization(InputAdapter adapter, T& value)
 {
-  Deserializer<InputAdapter> des{ std::move(adapter) };
+  Deserializer<InputAdapter> des{ eastl::move(adapter) };
   des.object(value);
   return { des.adapter().error(), des.adapter().isCompletedSuccessfully() };
 }
 
 template<typename Context, typename InputAdapter, typename T>
-std::pair<ReaderError, bool>
+eastl::pair<ReaderError, bool>
 quickDeserialization(Context& ctx, InputAdapter adapter, T& value)
 {
-  Deserializer<InputAdapter, Context> des{ ctx, std::move(adapter) };
+  Deserializer<InputAdapter, Context> des{ ctx, eastl::move(adapter) };
   des.object(value);
   return { des.adapter().error(), des.adapter().isCompletedSuccessfully() };
 }

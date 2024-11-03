@@ -8,6 +8,28 @@
 // a buffer.
 #include <bitsery/traits/vector.h>
 
+void* __cdecl operator new[](size_t size, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
+void* __cdecl operator new[](size_t size, size_t alignement, size_t offset, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)alignement;
+	(void)offset;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
 enum class MyEnum : uint16_t
 {
   V1,
@@ -18,7 +40,7 @@ struct MyStruct
 {
   uint32_t i;
   MyEnum e;
-  std::vector<float> fs;
+  eastl::vector<float> fs;
 };
 
 // define how object should be serialized/deserialized
@@ -33,7 +55,7 @@ serialize(S& s, MyStruct& o)
 }
 
 // some helper types
-using Buffer = std::vector<uint8_t>;
+using Buffer = eastl::vector<uint8_t>;
 using OutputAdapter = bitsery::OutputBufferAdapter<Buffer>;
 using InputAdapter = bitsery::InputBufferAdapter<Buffer>;
 

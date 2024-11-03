@@ -20,32 +20,32 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef BITSERY_EXT_STD_QUEUE_H
-#define BITSERY_EXT_STD_QUEUE_H
+#ifndef BITSERY_EXT_EASTL_QUEUE_H
+#define BITSERY_EXT_EASTL_QUEUE_H
 
-// include type traits for deque and vector, because they are defaults for queue
-// and priority_queue
+// include type traits for deque and vector, because they are defaults for queue and priority_queue
 #include "../traits/deque.h"
 #include "../traits/vector.h"
-#include <queue>
-#include <type_traits>
+#include <EASTL/queue.h>
+#include <EASTL/priority_queue.h>
+#include <EASTL/type_traits.h>
 
 namespace bitsery {
 namespace ext {
 
-class StdQueue
+class EastlQueue
 {
 private:
   // inherit from queue so we could take underlying container
   template<typename T, typename C>
-  struct QueueCnt : public std::queue<T, C>
+  struct QueueCnt : public eastl::queue<T, C>
   {
-    static const C& getContainer(const std::queue<T, C>& s)
+    static const C& getContainer(const eastl::queue<T, C>& s)
     {
       // get address of underlying container
       return s.*(&QueueCnt::c);
     }
-    static C& getContainer(std::queue<T, C>& s)
+    static C& getContainer(eastl::queue<T, C>& s)
     {
       // get address of underlying container
       return s.*(&QueueCnt::c);
@@ -53,14 +53,14 @@ private:
   };
   // inherit from queue so we could take underlying container
   template<typename T, typename Seq, typename Cmp>
-  struct PriorityQueueCnt : public std::priority_queue<T, Seq, Cmp>
+  struct PriorityQueueCnt : public eastl::priority_queue<T, Seq, Cmp>
   {
-    static const Seq& getContainer(const std::priority_queue<T, Seq, Cmp>& s)
+    static const Seq& getContainer(const eastl::priority_queue<T, Seq, Cmp>& s)
     {
       // get address of underlying container
       return s.*(&PriorityQueueCnt::c);
     }
-    static Seq& getContainer(std::priority_queue<T, Seq, Cmp>& s)
+    static Seq& getContainer(eastl::priority_queue<T, Seq, Cmp>& s)
     {
       // get address of underlying container
       return s.*(&PriorityQueueCnt::c);
@@ -70,50 +70,50 @@ private:
   size_t _maxSize;
 
 public:
-  explicit StdQueue(size_t maxSize)
+  explicit EastlQueue(size_t maxSize)
     : _maxSize{ maxSize } {};
 
   // for queue
   template<typename Ser, typename T, typename C, typename Fnc>
-  void serialize(Ser& ser, const std::queue<T, C>& obj, Fnc&& fnc) const
+  void serialize(Ser& ser, const eastl::queue<T, C>& obj, Fnc&& fnc) const
   {
     ser.container(
-      QueueCnt<T, C>::getContainer(obj), _maxSize, std::forward<Fnc>(fnc));
+      QueueCnt<T, C>::getContainer(obj), _maxSize, eastl::forward<Fnc>(fnc));
   }
 
   template<typename Des, typename T, typename C, typename Fnc>
-  void deserialize(Des& des, std::queue<T, C>& obj, Fnc&& fnc) const
+  void deserialize(Des& des, eastl::queue<T, C>& obj, Fnc&& fnc) const
   {
     des.container(
-      QueueCnt<T, C>::getContainer(obj), _maxSize, std::forward<Fnc>(fnc));
+      QueueCnt<T, C>::getContainer(obj), _maxSize, eastl::forward<Fnc>(fnc));
   }
 
   // for priority_queue
   template<typename Ser, typename T, typename C, typename Comp, typename Fnc>
   void serialize(Ser& ser,
-                 const std::priority_queue<T, C, Comp>& obj,
+                 const eastl::priority_queue<T, C, Comp>& obj,
                  Fnc&& fnc) const
   {
     ser.container(PriorityQueueCnt<T, C, Comp>::getContainer(obj),
                   _maxSize,
-                  std::forward<Fnc>(fnc));
+                  eastl::forward<Fnc>(fnc));
   }
 
   template<typename Des, typename T, typename C, typename Comp, typename Fnc>
   void deserialize(Des& des,
-                   std::priority_queue<T, C, Comp>& obj,
+                   eastl::priority_queue<T, C, Comp>& obj,
                    Fnc&& fnc) const
   {
     des.container(PriorityQueueCnt<T, C, Comp>::getContainer(obj),
                   _maxSize,
-                  std::forward<Fnc>(fnc));
+                  eastl::forward<Fnc>(fnc));
   }
 };
 }
 
 namespace traits {
 template<typename T>
-struct ExtensionTraits<ext::StdQueue, T>
+struct ExtensionTraits<ext::EastlQueue, T>
 {
   using TValue = typename T::value_type;
   static constexpr bool SupportValueOverload = true;
@@ -124,4 +124,4 @@ struct ExtensionTraits<ext::StdQueue, T>
 
 }
 
-#endif // BITSERY_EXT_STD_QUEUE_H
+#endif // BITSERY_EXT_EASTL_QUEUE_H

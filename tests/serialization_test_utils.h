@@ -26,7 +26,7 @@
 #include <bitsery/adapter/buffer.h>
 #include <bitsery/bitsery.h>
 #include <bitsery/traits/vector.h>
-#include <memory>
+#include <EASTL/unique_ptr.h>
 
 /*
  * define some types for testing
@@ -120,7 +120,7 @@ serialize(S& s, MyStruct2& o)
   s.object(o.s1);
 }
 
-using Buffer = std::vector<char>;
+using Buffer = eastl::vector<char>;
 using Reader = bitsery::InputBufferAdapter<Buffer>;
 using Writer = bitsery::OutputBufferAdapter<Buffer>;
 
@@ -134,31 +134,31 @@ public:
   using TDeserializerBPEnabled = typename TDeserializer::BPEnabledType;
 
   Buffer buf{};
-  std::unique_ptr<TSerializer> ser{};
-  std::unique_ptr<TDeserializer> des{};
+  eastl::unique_ptr<TSerializer> ser{};
+  eastl::unique_ptr<TDeserializer> des{};
 
   template<typename T = Context,
-           typename std::enable_if<std::is_void<T>::value>::type* = nullptr>
+           typename eastl::enable_if<eastl::is_void<T>::value>::type* = nullptr>
   TSerializer& createSerializer()
   {
     if (!ser) {
-      ser = std::unique_ptr<TSerializer>(new TSerializer{ buf });
+      ser = eastl::unique_ptr<TSerializer>(new TSerializer{ buf });
     }
     return *ser;
   }
 
   template<typename T = Context>
   TSerializer& createSerializer(
-    typename std::enable_if<!std::is_void<T>::value, T>::type& ctx)
+    typename eastl::enable_if<!eastl::is_void<T>::value, T>::type& ctx)
   {
     if (!ser) {
-      ser = std::unique_ptr<TSerializer>(new TSerializer{ ctx, buf });
+      ser = eastl::unique_ptr<TSerializer>(new TSerializer{ ctx, buf });
     }
     return *ser;
   }
 
   template<typename T = Context,
-           typename std::enable_if<std::is_void<T>::value>::type* = nullptr>
+           typename eastl::enable_if<eastl::is_void<T>::value>::type* = nullptr>
   TDeserializer& createDeserializer()
   {
     size_t writtenBytes = 0;
@@ -167,7 +167,7 @@ public:
       writtenBytes = ser->adapter().writtenBytesCount();
     }
     if (!des) {
-      des = std::unique_ptr<TDeserializer>(
+      des = eastl::unique_ptr<TDeserializer>(
         new TDeserializer{ buf.begin(), writtenBytes });
     }
     return *des;
@@ -175,7 +175,7 @@ public:
 
   template<typename T = Context>
   TDeserializer& createDeserializer(
-    typename std::enable_if<!std::is_void<T>::value, T>::type& ctx)
+    typename eastl::enable_if<!eastl::is_void<T>::value, T>::type& ctx)
   {
     size_t writtenBytes = 0;
     if (ser) {
@@ -183,7 +183,7 @@ public:
       writtenBytes = ser->adapter().writtenBytesCount();
     }
     if (!des) {
-      des = std::unique_ptr<TDeserializer>(
+      des = eastl::unique_ptr<TDeserializer>(
         new TDeserializer{ ctx, buf.begin(), writtenBytes });
     }
     return *des;

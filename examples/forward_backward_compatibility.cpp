@@ -7,6 +7,28 @@
 // include extension that will allow to have backward/forward compatibility
 #include <bitsery/ext/growable.h>
 
+void* __cdecl operator new[](size_t size, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
+void* __cdecl operator new[](size_t size, size_t alignement, size_t offset, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)alignement;
+	(void)offset;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
 namespace MyTypes {
 
 // define data
@@ -24,10 +46,10 @@ struct Vec3
 
 struct Weapon
 {
-  std::string name{};
+  eastl::string name{};
   int16_t damage{};
   Weapon() = default;
-  Weapon(const std::string& _name, int16_t dmg)
+  Weapon(const eastl::string& _name, int16_t dmg)
     : name{ _name }
     , damage{ dmg }
   {
@@ -52,12 +74,12 @@ struct Monster
   Vec3 pos;
   int16_t mana;
   int16_t hp;
-  std::string name;
-  std::vector<uint8_t> inventory;
+  eastl::string name;
+  eastl::vector<uint8_t> inventory;
   Color color;
-  std::vector<Weapon> weapons;
+  eastl::vector<Weapon> weapons;
   Weapon equipped;
-  std::vector<Vec3> path;
+  eastl::vector<Vec3> path;
 };
 
 template<typename S>
@@ -89,7 +111,7 @@ serialize(S& s, Monster& o)
 }
 
 // use fixed-size buffer
-using Buffer = std::array<uint8_t, 10000>;
+using Buffer = eastl::array<uint8_t, 10000>;
 using OutputAdapter = bitsery::OutputBufferAdapter<Buffer>;
 using InputAdapter = bitsery::InputBufferAdapter<Buffer>;
 

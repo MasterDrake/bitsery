@@ -20,21 +20,21 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef BITSERY_EXT_STD_CHRONO_H
-#define BITSERY_EXT_STD_CHRONO_H
+#ifndef BITSERY_EXT_EASTL_CHRONO_H
+#define BITSERY_EXT_EASTL_CHRONO_H
 
 #include "../traits/core/traits.h"
-#include <chrono>
+#include <EASTL/chrono.h>
 
 namespace bitsery {
 namespace ext {
 
-class StdDuration
+class EastlDuration
 {
 public:
   template<typename Ser, typename T, typename Period, typename Fnc>
   void serialize(Ser& ser,
-                 const std::chrono::duration<T, Period>& obj,
+                 const eastl::chrono::duration<T, Period>& obj,
                  Fnc&& fnc) const
   {
     auto res = obj.count();
@@ -43,16 +43,16 @@ public:
 
   template<typename Des, typename T, typename Period, typename Fnc>
   void deserialize(Des& des,
-                   std::chrono::duration<T, Period>& obj,
+                   eastl::chrono::duration<T, Period>& obj,
                    Fnc&& fnc) const
   {
     T res{};
     fnc(des, res);
-    obj = std::chrono::duration<T, Period>{ res };
+    obj = eastl::chrono::duration<T, Period>{ res };
   }
 };
 
-class StdTimePoint
+class EastlTimePoint
 {
 public:
   template<typename Ser,
@@ -62,7 +62,7 @@ public:
            typename Fnc>
   void serialize(
     Ser& ser,
-    const std::chrono::time_point<Clock, std::chrono::duration<T, Period>>& obj,
+    const eastl::chrono::time_point<Clock, eastl::chrono::duration<T, Period>>& obj,
     Fnc&& fnc) const
   {
     auto res = obj.time_since_epoch().count();
@@ -76,14 +76,14 @@ public:
            typename Fnc>
   void deserialize(
     Des& des,
-    std::chrono::time_point<Clock, std::chrono::duration<T, Period>>& obj,
+    eastl::chrono::time_point<Clock, eastl::chrono::duration<T, Period>>& obj,
     Fnc&& fnc) const
   {
     T res{};
     fnc(des, res);
-    auto dur = std::chrono::duration<T, Period>{ res };
+    auto dur = eastl::chrono::duration<T, Period>{ res };
     obj =
-      std::chrono::time_point<Clock, std::chrono::duration<T, Period>>{ dur };
+      eastl::chrono::time_point<Clock, eastl::chrono::duration<T, Period>>{ dur };
   }
 };
 
@@ -91,7 +91,7 @@ public:
 
 namespace traits {
 template<typename Rep, typename Period>
-struct ExtensionTraits<ext::StdDuration, std::chrono::duration<Rep, Period>>
+struct ExtensionTraits<ext::EastlDuration, eastl::chrono::duration<Rep, Period>>
 {
   using TValue = Rep;
   static constexpr bool SupportValueOverload = true;
@@ -101,8 +101,8 @@ struct ExtensionTraits<ext::StdDuration, std::chrono::duration<Rep, Period>>
 
 template<typename Clock, typename Rep, typename Period>
 struct ExtensionTraits<
-  ext::StdTimePoint,
-  std::chrono::time_point<Clock, std::chrono::duration<Rep, Period>>>
+  ext::EastlTimePoint,
+  eastl::chrono::time_point<Clock, eastl::chrono::duration<Rep, Period>>>
 {
   using TValue = Rep;
   static constexpr bool SupportValueOverload = true;
@@ -114,4 +114,4 @@ struct ExtensionTraits<
 
 }
 
-#endif // BITSERY_EXT_STD_CHRONO_H
+#endif // BITSERY_EXT_EASTL_CHRONO_H

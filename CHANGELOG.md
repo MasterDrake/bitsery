@@ -1,7 +1,7 @@
 # [5.2.4](https://github.com/fraillt/bitsery/compare/v5.2.3...v5.2.4) (2024-07-30)
 
 ### Improvements
-* implement brief syntax for std::optional and std::bitset. #116 (thanks to [Destroyerrrocket](https://github.com/Destroyerrrocket))
+* implement brief syntax for eastl::optional and eastl::bitset. #116 (thanks to [Destroyerrrocket](https://github.com/Destroyerrrocket))
 * improve performance for buffer adapters. #118 (thanks to [Destroyerrrocket](https://github.com/Destroyerrrocket))
 * check if should swap by taking into account actual type (in addition to configuration). #105 (thanks to [SoftdriveFelix](https://github.com/SoftdriveFelix))
 * fix compile errors for latest compilers. #106 (thanks to [NBurley93](https://github.com/NBurley93))
@@ -27,8 +27,8 @@
 
 ### Improvements
 * add 16 byte value support #75 (thanks to [Victor Stewart](https://github.com/victorstewart))
-* avoid reinitializing nontrivial std::variant #77 (thanks to [Robbert van der Helm](https://github.com/robbert-vdh))
-* avoid reinitializing nontrivial std::optional.
+* avoid reinitializing nontrivial eastl::variant #77 (thanks to [Robbert van der Helm](https://github.com/robbert-vdh))
+* avoid reinitializing nontrivial eastl::optional.
 
 ### Bug fixes
 * fix missing headers for GCC11, also added test to check includes #82 (thanks to [michael-mueller-git](https://github.com/michael-mueller-git))
@@ -116,7 +116,7 @@ If you can trust your data this will improve deserialization performance. Error 
 
 * improved design for serializer/deserializer *context*. It was hard to understand and easy to misuse, so several changes were made.
   * removed *internal* context from config, because it doesn't actually solve any problems, only allows doing the same thing in multiple ways.
-  * removed `T* context()`. This allowed to get a context that is `std::tuple<...>`, but you can do the same with other methods, by wrapping in an outer tuple, e.g. `std::tuple<std::tuple<...>>`.
+  * removed `T* context()`. This allowed to get a context that is `eastl::tuple<...>`, but you can do the same with other methods, by wrapping in an outer tuple, e.g. `eastl::tuple<eastl::tuple<...>>`.
   * if a context is defined, in serializer/deserializer, it is passed (and stored) by reference as a first argument (instead of pointer). Other parameters are forwarded to a input/output adapter.
   * changed signature `T* context<T>` to `T& context<T>`, this will either return context or doesn't compile, previously it could also return nullptr.
   * `context<T>` and `contextOrNull<T>` now also check if a type is convertible, so it can work with base classes
@@ -129,7 +129,7 @@ This allows much easier serialization customization, because no additional state
 * removed various functions/classes that became redundant:
   * *AdapterWriter/Reader* classes - their functionality is moved to *adapters*.
   * *AdapterAccess* class - now serializer/deserializer expose adapter directly via `adapter()` method.
-  Additionally adapter can be moved out if serializer/deserializer is rvalue .e.g `auto adapter = std::move(ser).adapter();`.
+  Additionally adapter can be moved out if serializer/deserializer is rvalue .e.g `auto adapter = eastl::move(ser).adapter();`.
   * removed *Writer/Reader* parameters from extensions *serialize/deserialize* methods - because serializer/deserializer now expose *adapter* directly.
   * *archive* from serializer/deserializer - because `operator()` do the same thing, but it is more terse, and is compatible with `cereal` library.
   * *align* function from serializer/deserializer - it can now be called directly on input/output adapter.
@@ -167,12 +167,12 @@ e.g. instead of writing `s.container(obj, [](S& s, MyData& data) {s.ext(data, My
 # [4.6.0](https://github.com/fraillt/bitsery/compare/v4.5.1...v4.6.0) (2019-03-12)
 
 ### Features
-* new extensions **StdTuple** and **StdVariant** for `std::tuple` and `std::variant`. These are the first extensions that requires C++17, or higher, standard enabled.
-Although `std::tuple` is C++11 type, but from usage perspective it has exactly the same requirements as `std::variant` and relies heavily on having class template argument deduction guides to make it convenient to use.
-You can easily use `std::tuple` without any extension at all, so the main motivation was to create convenient interface for **StdVariant** and use the same interface for **StdTuple** as well.
+* new extensions **StdTuple** and **StdVariant** for `eastl::tuple` and `eastl::variant`. These are the first extensions that requires C++17, or higher, standard enabled.
+Although `eastl::tuple` is C++11 type, but from usage perspective it has exactly the same requirements as `eastl::variant` and relies heavily on having class template argument deduction guides to make it convenient to use.
+You can easily use `eastl::tuple` without any extension at all, so the main motivation was to create convenient interface for **StdVariant** and use the same interface for **StdTuple** as well.
   * instead of providing custom lambda to overload each type in tuple or variant, there was added several helper callable objects.
   **OverloadValue** wrapper around `s.value<N>(o)`, **OverloadExtValue** wrapper around `s.ext<N>(o, Ext{})` and **OverloadExtObject** wrapper around `s.ext(o, Ext{})`.
-* new extensions **StdDuration** and **StdTimePoint** for `std::chrono::duration` and `std::chrono::time_point`.
+* new extensions **StdDuration** and **StdTimePoint** for `eastl::chrono::duration` and `eastl::chrono::time_point`.
 
 ### Improvements
 tests now uses `gtest_discover_tests` function, to automatically discover tests, which requires CMake 3.10.
@@ -192,7 +192,7 @@ tests now uses `gtest_discover_tests` function, to automatically discover tests,
 It is not necessary to enforce class invariant immediately, because internal object representation will be overriden anyway.
 
 ### Improvements
-* `StdSmartPtr` supports `std::unique_ptr` with custom deleter.
+* `StdSmartPtr` supports `eastl::unique_ptr` with custom deleter.
 * `*InputBufferAdapter`(all) can also accept const buffer;
 
 ### Bug fixes
@@ -246,21 +246,21 @@ struct MyHierarchy<Shape>: bitsery::ext::bitsery::ext::PolymorphicClassesList<My
 * added runtime polymorphism support for pointer like types (raw and smart pointers).
 In order to enable polymorphism new **PolymorphicContext** was created. It provides capability to register classes with serializer/deserializer.
   * runtime polymorphism can be customized, by replacing **StandardRTTI** from <bitsery/ext/utils/rtti_utils.h> header.
-* added smart pointers support for std::unique_ptr, std::shared_ptr and std::weak_ptr via **StdSmartPtr** extension.
+* added smart pointers support for eastl::unique_ptr, eastl::shared_ptr and eastl::weak_ptr via **StdSmartPtr** extension.
 * new **UnsafeInputBufferAdapter** doesn't check for buffer size on deserialization, on some compilers can improve deserialization performance up to ~40%.
 
 ### Improvements
 * creatly improved interface for extending/implementing support for pointer like types. Now all pointer like types extends from **PointerObjectExtensionBase** and implements/configures required details.
 * reimplemented **PointerOwner**, **PointerObserver**, **ReferencedByPointer**.
-* reimplemented **PointerLinkingContext** to properly support shared objects and runtime polymorphism, pointer ownership for shared objects now has two states: SharedOwner e.g. std::shared_ptr and SharedObserver std::weak_ptr.
+* reimplemented **PointerLinkingContext** to properly support shared objects and runtime polymorphism, pointer ownership for shared objects now has two states: SharedOwner e.g. eastl::shared_ptr and SharedObserver eastl::weak_ptr.
 
 ### Other notes
 There is one *minor?* issue/limitation for pointer like types that uses virtual inheritance. When several pointers points to same object through different static type. it will not work correctly e.g.:
 ```cpp
 struct Derived: virtual Base {...};
 struct MyData {
-    std::shared_ptr<Derived> sptr;
-    std::weak_ptr<Base> wptddr;
+    eastl::shared_ptr<Derived> sptr;
+    eastl::weak_ptr<Base> wptddr;
 }
 ```
 In this example wptr and sptr have different static type, and *Derived* is virtually inherited from *Base*, so I get different pointer address for different types.
@@ -310,19 +310,19 @@ In order to correctly manage pointer ownership, three extensions was created in 
   To validate and update pointers **PointerLinkingContext** have to be passed to serialization/deserialization.
   It ensures that all pointers are valid, that same pointer doesn't have multiple owners, and non-owning pointers doesn't point outside of scope (i.e. non owning pointers points to data that is serialized/deserialized), see [raw_pointers example](examples/raw_pointers.cpp) for usage example.
 
-  *Currently polimorphism and std::shared_ptr,  std::unique_ptr is not supported.*
+  *Currently polimorphism and eastl::shared_ptr,  eastl::unique_ptr is not supported.*
 
 * added **context\<T\>()** overload to *BasicSerializer/BasicDeserializer* and now they became typesafe.
-For better extensions support, added posibility to have multiple types in context with *std::tuple*.
-E.g. when using multiple extensions, that requires specific contexts, together with your custom context, you can define your context as *std::tuple\<PointerLinkingContext, MyContext\>* and in serialization function you can correctly get your data via *context\<MyContext\>()*.
+For better extensions support, added posibility to have multiple types in context with *eastl::tuple*.
+E.g. when using multiple extensions, that requires specific contexts, together with your custom context, you can define your context as *eastl::tuple\<PointerLinkingContext, MyContext\>* and in serialization function you can correctly get your data via *context\<MyContext\>()*.
 
 
 ### Improvements
 
 * new **OutputBufferedStreamAdapter** use internal buffer instead of directly writing to stream, can get more than 2x performance increase.
   * can use any contiguous container as internal buffer.
-  * when using fixed-size, stack allocated container (*std::array*), buffer size via constructor is ignored.
-  * default internal buffer is *std::array<char,256>*.
+  * when using fixed-size, stack allocated container (*eastl::array*), buffer size via constructor is ignored.
+  * default internal buffer is *eastl::array<char,256>*.
 * added *static_assert* when trying to use *BufferAdapter* with non contiguous container.
 
 
@@ -400,7 +400,7 @@ Be careful when using deserializing untrusted data and make sure to enforce fund
   * **ext** to **extend** and changed its interface, to make it more easy to extend.
   * alias functions that write bytes directly no has *b* (meaning bytes) at the end of the name eg. *value4* now is *value4b*.
 * changed BufferWriter/Reader behaviour:
-  * added support for fixed size buffers for better serializer performance (more than 50% improvement). Default config is resizable buffer (*std::vector<uint8_t>*).
+  * added support for fixed size buffers for better serializer performance (more than 50% improvement). Default config is resizable buffer (*eastl::vector<uint8_t>*).
   * after serialization, call *getWrittenRange* to get valid range written to buffer, because BufferWritter for resizable buffer now always resize to *capacity* to avoid using *back_insert_iterator* for better performance.
   * BufferReader has constructor with iterators (range), and raw value type pointers (begin, end).
 * renamed BufferReader **isCompleted** to  **isCompletedSuccessfully**, that returns true only when there is no errors and buffer is fully read.
@@ -423,7 +423,7 @@ Be careful when using deserializing untrusted data and make sure to enforce fund
 
 * endianness support, default network configuration is *little endian*
 * added user extensible function **ext**, to work with objects that require different serialization/deserialization path (e.g. pointers)
-* **optional** extension (for *ext* function), to work with *std::optional* types
+* **optional** extension (for *ext* function), to work with *eastl::optional* types
 
 ### Breaking changes
 
@@ -449,7 +449,7 @@ Serialization functions:
 * **value** - [fundamental types](doc/design/fundamental_types.md)
 * **container** - dynamic size containers
 * **array** - fixed size containers
-* **text** - for c-array and std::string
+* **text** - for c-array and eastl::string
 * **range** - compresion for fundamental types (e.g. int between [255..512] will take up 8bits
 * **substitution** - default value from list (e.g. 4d vector, that is most of the time equals to [0,0,0,1] can store only 1bit)
 * **boolBit**/**boolByte** - serialize bool, as 1bit or 1byte.

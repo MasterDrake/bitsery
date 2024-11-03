@@ -1,4 +1,16 @@
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.22)
+
+set(VCPKG_LIBRARY_LINKAGE static)
+set(VCPKG_MAX_CONCURRENCY 12)
+
+if (WIN32)
+	set(VCPKG_TARGET_TRIPLET x64-windows)
+	include("$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
+elseif (UNIX)
+	set(VCPKG_TARGET_TRIPLET x64-linux)
+ 	include("/home/$ENV{USER}/GameDev/Libraries/vcpkg/scripts/buildsystems/vcpkg.cmake")
+endif()
+
 project(bitsery
         LANGUAGES CXX
         VERSION 5.2.4)

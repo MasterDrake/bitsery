@@ -20,31 +20,31 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef BITSERY_BRIEF_SYNTAX_TYPE_STD_QUEUE_H
-#define BITSERY_BRIEF_SYNTAX_TYPE_STD_QUEUE_H
+#ifndef BITSERY_BRIEF_SYNTAX_TYPE_EASTL_QUEUE_H
+#define BITSERY_BRIEF_SYNTAX_TYPE_EASTL_QUEUE_H
 
-#include "../ext/std_queue.h"
-#include <limits>
+#include "../ext/eastl_queue.h"
+#include <EASTL/numeric_limits.h>
 
 namespace bitsery {
 template<typename S, typename T, typename C>
 void
 serialize(S& s,
-          std::queue<T, C>& obj,
-          size_t maxSize = std::numeric_limits<size_t>::max())
+          eastl::queue<T, C>& obj,
+          size_t maxSize = eastl::numeric_limits<size_t>::max())
 {
-  s.ext(obj, ext::StdQueue{ maxSize });
+  s.ext(obj, ext::EastlQueue{ maxSize });
 }
 
 template<typename S, typename T, typename C, typename Comp>
 void
 serialize(S& s,
-          std::priority_queue<T, C, Comp>& obj,
-          size_t maxSize = std::numeric_limits<size_t>::max())
+          eastl::priority_queue<T, C, Comp>& obj,
+          size_t maxSize = eastl::numeric_limits<size_t>::max())
 {
-  s.ext(obj, ext::StdQueue{ maxSize });
+  s.ext(obj, ext::EastlQueue{ maxSize });
 }
 
 }
 
-#endif // BITSERY_BRIEF_SYNTAX_TYPE_STD_QUEUE_H
+#endif // BITSERY_BRIEF_SYNTAX_TYPE_EASTL_QUEUE_H

@@ -24,16 +24,38 @@
 #include <bitsery/traits/string.h>
 #include <gmock/gmock.h>
 
+void* __cdecl operator new[](size_t size, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
+void* __cdecl operator new[](size_t size, size_t alignement, size_t offset, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)alignement;
+	(void)offset;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
 using namespace testing;
 
 TEST(SerializeText, BasicString)
 {
   SerializationContext ctx;
-  std::string t1 = "some random text";
-  std::string res;
+  eastl::string t1 = "some random text";
+  eastl::string res;
 
-  ctx.createSerializer().text<sizeof(std::string::value_type)>(t1, 1000);
-  ctx.createDeserializer().text<sizeof(std::string::value_type)>(res, 1000);
+  ctx.createSerializer().text<sizeof(eastl::string::value_type)>(t1, 1000);
+  ctx.createDeserializer().text<sizeof(eastl::string::value_type)>(res, 1000);
 
   EXPECT_THAT(res, StrEq(t1));
   EXPECT_THAT(res, ContainerEq(t1));
@@ -43,8 +65,8 @@ TEST(SerializeText, WhenSizeOfTypeNotEqualsOneThenSetSizeExplicitly)
 {
   SerializationContext ctx;
   constexpr auto VSIZE = sizeof(char32_t);
-  std::basic_string<char32_t> t1 = U"some random text";
-  std::basic_string<char32_t> res;
+  eastl::basic_string<char32_t> t1 = U"some random text";
+  eastl::basic_string<char32_t> res;
   static_assert(VSIZE > 1,
                 "on this system, all character types has sizeof == 1, cannot "
                 "run this tests");
@@ -58,9 +80,9 @@ TEST(SerializeText, WhenSizeOfTypeNotEqualsOneThenSetSizeExplicitly)
 TEST(SerializeText, BasicStringUseSizeMethodNotNullterminatedLength)
 {
   SerializationContext ctx;
-  std::wstring t1(L"some random text\0xxxxxx", 20);
-  std::wstring wres;
-  constexpr auto VSIZE = sizeof(std::wstring::value_type);
+  eastl::wstring t1(L"some random text\0xxxxxx", 20);
+  eastl::wstring wres;
+  constexpr auto VSIZE = sizeof(eastl::wstring::value_type);
 
   ctx.createSerializer().text<VSIZE>(t1, 1000);
   ctx.createDeserializer().text<VSIZE>(wres, 1000);
@@ -69,21 +91,21 @@ TEST(SerializeText, BasicStringUseSizeMethodNotNullterminatedLength)
   EXPECT_THAT(wres.size(), Eq(t1.size()));
   EXPECT_THAT(
     wres.size(),
-    Gt(std::char_traits<std::wstring::value_type>::length(t1.data())));
+    Gt(eastl::char_traits<eastl::wstring::value_type>::length(t1.data())));
 
   SerializationContext ctx2;
-  std::string t2("\0no one cares what is there", 10);
-  std::string res;
-  ctx2.createSerializer().text<sizeof(std::string::value_type)>(t2, 1000);
-  ctx2.createDeserializer().text<sizeof(std::string::value_type)>(res, 1000);
+  eastl::string t2("\0no one cares what is there", 10);
+  eastl::string res;
+  ctx2.createSerializer().text<sizeof(eastl::string::value_type)>(t2, 1000);
+  ctx2.createDeserializer().text<sizeof(eastl::string::value_type)>(res, 1000);
 
   EXPECT_THAT(res, StrEq(t2));
   EXPECT_THAT(res.size(), Eq(t2.size()));
 
   SerializationContext ctx3;
-  std::string t3("never ending buffer that doesnt fit in this string", 10);
-  ctx3.createSerializer().text<sizeof(std::string::value_type)>(t3, 1000);
-  ctx3.createDeserializer().text<sizeof(std::string::value_type)>(res, 1000);
+  eastl::string t3("never ending buffer that doesnt fit in this string", 10);
+  ctx3.createSerializer().text<sizeof(eastl::string::value_type)>(t3, 1000);
+  ctx3.createDeserializer().text<sizeof(eastl::string::value_type)>(res, 1000);
   EXPECT_THAT(res, StrEq(t3));
   EXPECT_THAT(res.size(), Eq(10));
 }
@@ -101,7 +123,7 @@ TEST(SerializeText, CArraySerializesTextLength)
 
   EXPECT_THAT(ctx.getBufferSize(),
               Eq(ctx.containerSizeSerializedBytesCount(CARR_LENGTH) +
-                 std::char_traits<char>::length(t1)));
+                 eastl::char_traits<char>::length(t1)));
 
   EXPECT_THAT(r1, StrEq(t1));
   EXPECT_THAT(r1, ContainerEq(t1));
@@ -132,7 +154,7 @@ TEST(SerializeText, WhenCArrayNotNullterminatedThenAssert)
 TEST(SerializeText, WhenContainerOrTextSizeIsMoreThanMaxThenInvalidDataError)
 {
   SerializationContext ctx;
-  std::string tmp = "larger text then allowed";
+  eastl::string tmp = "larger text then allowed";
   ctx.createSerializer().text1b(tmp, 100);
   ctx.createDeserializer().text1b(tmp, 10);
   EXPECT_THAT(ctx.des->adapter().error(),

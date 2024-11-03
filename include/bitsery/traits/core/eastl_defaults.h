@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef BITSERY_TRAITS_CORE_STD_DEFAULTS_H
-#define BITSERY_TRAITS_CORE_STD_DEFAULTS_H
+#ifndef BITSERY_TRAITS_CORE_EASTL_DEFAULTS_H
+#define BITSERY_TRAITS_CORE_EASTL_DEFAULTS_H
 
 #include "../../bitsery.h"
 #include "../../details/serialization_common.h"
@@ -31,11 +31,11 @@ namespace bitsery {
 namespace traits {
 
 /*
- * these are helper types, to easier write specializations for std types
+ * these are helper types, to easier write specializations for eastl types
  */
 
 template<typename T, bool Resizable, bool Contiguous>
-struct StdContainer
+struct EastlContainer
 {
   using TValue = typename T::value_type;
   static constexpr bool isResizable = Resizable;
@@ -45,7 +45,7 @@ struct StdContainer
 
 // specialization for resizable
 template<typename T, bool Contiguous>
-struct StdContainer<T, true, Contiguous>
+struct EastlContainer<T, true, Contiguous>
 {
   using TValue = typename T::value_type;
   static constexpr bool isResizable = true;
@@ -53,17 +53,17 @@ struct StdContainer<T, true, Contiguous>
   static size_t size(const T& container) { return container.size(); }
   static void resize(T& container, size_t size)
   {
-    resizeImpl(container, size, std::is_default_constructible<TValue>{});
+    resizeImpl(container, size, eastl::is_default_constructible<TValue>{});
   }
 
 private:
   using diff_t = typename T::difference_type;
 
-  static void resizeImpl(T& container, size_t size, std::true_type)
+  static void resizeImpl(T& container, size_t size, eastl::true_type)
   {
     container.resize(size);
   }
-  static void resizeImpl(T& container, size_t newSize, std::false_type)
+  static void resizeImpl(T& container, size_t newSize, eastl::false_type)
   {
     const auto oldSize = size(container);
     for (auto it = oldSize; it < newSize; ++it) {
@@ -71,14 +71,14 @@ private:
     }
     if (oldSize > newSize) {
       container.erase(
-        std::next(std::begin(container), static_cast<diff_t>(newSize)),
-        std::end(container));
+        eastl::next(eastl::begin(container), static_cast<diff_t>(newSize)),
+        eastl::end(container));
     }
   }
 };
 
 template<typename T, bool Resizable = ContainerTraits<T>::isResizable>
-struct StdContainerForBufferAdapter
+struct EastlContainerForBufferAdapter
 {
   using TIterator = typename T::iterator;
   using TConstIterator = typename T::const_iterator;
@@ -87,7 +87,7 @@ struct StdContainerForBufferAdapter
 
 // specialization for resizable buffers
 template<typename T>
-struct StdContainerForBufferAdapter<T, true>
+struct EastlContainerForBufferAdapter<T, true>
 {
   using TIterator = typename T::iterator;
   using TConstIterator = typename T::const_iterator;
@@ -103,9 +103,9 @@ struct StdContainerForBufferAdapter<T, true>
     auto newSize =
       static_cast<size_t>(static_cast<double>(container.size()) * 1.5) + 128;
     // make data cache friendly
-    newSize -= newSize % 64; // 64 is cache line size
+    newSize -= newSize % 64; // 64 is cache line size //TODO: This should be std::hardware_destructive_interference_size
     auto resize =
-      (std::max)(newSize > minSize ? newSize : minSize, container.capacity());
+      (eastl::max)(newSize > minSize ? newSize : minSize, container.capacity());
     BITSERY_ASSUME(resize >= container.size());
     BITSERY_ASSUME(resize >= container.capacity());
     container.resize(resize);
@@ -115,4 +115,4 @@ struct StdContainerForBufferAdapter<T, true>
 }
 }
 
-#endif // BITSERY_TRAITS_CORE_STD_DEFAULTS_H
+#endif // BITSERY_TRAITS_CORE_EASTL_DEFAULTS_H

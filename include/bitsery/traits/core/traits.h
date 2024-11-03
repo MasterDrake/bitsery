@@ -24,7 +24,7 @@
 #define BITSERY_TRAITS_CORE_TRAITS_H
 
 #include "../../details/not_defined_type.h"
-#include <type_traits>
+#include <EASTL/type_traits.h>
 
 namespace bitsery {
 namespace traits {
@@ -67,14 +67,14 @@ struct ContainerTraits
   // resize function, called only if container is resizable
   static void resize(T&, size_t)
   {
-    static_assert(std::is_void<T>::value,
+    static_assert(eastl::is_void<T>::value,
                   "Define ContainerTraits or include from <bitsery/traits/...> "
                   "to use as container");
   }
   // get container size
   static size_t size(const T&)
   {
-    static_assert(std::is_void<T>::value,
+    static_assert(eastl::is_void<T>::value,
                   "Define ContainerTraits or include from <bitsery/traits/...> "
                   "to use as container");
     return 0u;
@@ -115,7 +115,7 @@ struct ContainerTraits<const T*>
   static constexpr bool isContiguous = true;
   static size_t size(const T*)
   {
-    static_assert(std::is_void<T>::value,
+    static_assert(eastl::is_void<T>::value,
                   "cannot get size for container of type T*");
     return 0u;
   }
@@ -129,7 +129,7 @@ struct ContainerTraits<T*>
   static constexpr bool isContiguous = true;
   static size_t size(const T*)
   {
-    static_assert(std::is_void<T>::value,
+    static_assert(eastl::is_void<T>::value,
                   "cannot get size for container of type T*");
     return 0u;
   }
@@ -147,7 +147,7 @@ struct TextTraits
   static size_t length(const T&)
   {
     static_assert(
-      std::is_void<T>::value,
+      eastl::is_void<T>::value,
       "Define TextTraits or include from <bitsery/traits/...> to use as text");
     return 0u;
   }
@@ -170,7 +170,7 @@ struct BufferAdapterTraits
 
   static void increaseBufferSize(T&, size_t, size_t)
   {
-    static_assert(std::is_void<T>::value,
+    static_assert(eastl::is_void<T>::value,
                   "Define BufferAdapterTraits or include from "
                   "<bitsery/traits/...> to use as buffer adapter container");
   }

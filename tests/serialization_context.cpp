@@ -23,12 +23,34 @@
 #include "serialization_test_utils.h"
 #include <gmock/gmock.h>
 
+void* __cdecl operator new[](size_t size, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
+void* __cdecl operator new[](size_t size, size_t alignement, size_t offset, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)alignement;
+	(void)offset;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
 using testing::Eq;
 
 using bitsery::DefaultConfig;
 
 using SingleTypeContext = int;
-using MultipleTypesContext = std::tuple<int, float, char>;
+using MultipleTypesContext = eastl::tuple<int, float, char>;
 
 TEST(SerializationContext, WhenContextIsNotTupleThenReturnThisContext)
 {
@@ -46,9 +68,9 @@ TEST(SerializationContext, WhenContextIsTupleThenReturnsTupleElements)
   BasicSerializationContext<MultipleTypesContext> c1;
   auto& ser1 = c1.createSerializer(ctx);
 
-  EXPECT_THAT(ser1.context<int>(), std::get<0>(ctx));
-  EXPECT_THAT(ser1.context<float>(), std::get<1>(ctx));
-  EXPECT_THAT(ser1.context<char>(), std::get<2>(ctx));
+  EXPECT_THAT(ser1.context<int>(), eastl::get<0>(ctx));
+  EXPECT_THAT(ser1.context<float>(), eastl::get<1>(ctx));
+  EXPECT_THAT(ser1.context<char>(), eastl::get<2>(ctx));
 }
 
 TEST(SerializationContext, WhenContextDoesntExistsThenContextOrNullReturnsNull)
@@ -92,27 +114,27 @@ TEST(SerializationContext,
      WhenMultipleConvertibleTypesExistsThenFirstMatchIsTaken)
 {
   {
-    using CTX1 = std::tuple<Base, int, Derived>;
+    using CTX1 = eastl::tuple<Base, int, Derived>;
     CTX1 ctx1{};
-    std::get<0>(ctx1).value = 1;
-    std::get<2>(ctx1).value = 2;
+    eastl::get<0>(ctx1).value = 1;
+    eastl::get<2>(ctx1).value = 2;
     BasicSerializationContext<CTX1> c1;
     auto& ser = c1.createSerializer(ctx1);
-    EXPECT_THAT(ser.context<Derived>().value, Eq(std::get<2>(ctx1).value));
-    EXPECT_THAT(ser.context<Base>().value, Eq(std::get<0>(ctx1).value));
+    EXPECT_THAT(ser.context<Derived>().value, Eq(eastl::get<2>(ctx1).value));
+    EXPECT_THAT(ser.context<Base>().value, Eq(eastl::get<0>(ctx1).value));
   }
 
   {
-    using CTX2 = std::tuple<float, Derived, Base>;
+    using CTX2 = eastl::tuple<float, Derived, Base>;
     CTX2 ctx2{};
-    std::get<1>(ctx2).value = 1;
-    std::get<2>(ctx2).value = 2;
+    eastl::get<1>(ctx2).value = 1;
+    eastl::get<2>(ctx2).value = 2;
     BasicSerializationContext<CTX2> c2;
     auto& des = c2.createSerializer(ctx2);
 
-    EXPECT_THAT(des.context<Derived>().value, Eq(std::get<1>(ctx2).value));
+    EXPECT_THAT(des.context<Derived>().value, Eq(eastl::get<1>(ctx2).value));
     // Base will not be accessable in this case, because Derived is first valid
     // match
-    EXPECT_THAT(des.context<Base>().value, Eq(std::get<1>(ctx2).value));
+    EXPECT_THAT(des.context<Base>().value, Eq(eastl::get<1>(ctx2).value));
   }
 }

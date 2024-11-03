@@ -20,19 +20,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef BITSERY_BRIEF_SYNTAX_TYPE_STD_STRING_H
-#define BITSERY_BRIEF_SYNTAX_TYPE_STD_STRING_H
+#ifndef BITSERY_BRIEF_SYNTAX_TYPE_EASTL_STRING_H
+#define BITSERY_BRIEF_SYNTAX_TYPE_EASTL_STRING_H
 
 #include "../details/brief_syntax_common.h"
 #include "../traits/string.h"
 
 namespace bitsery {
-template<typename S, typename CharT, typename Traits, typename Allocator>
+template<typename S, typename CharT, typename Allocator>
 void
-serialize(S& s, std::basic_string<CharT, Traits, Allocator>& str)
+serialize(S& s, eastl::basic_string<CharT, Allocator>& str)
 {
   brief_syntax::processContainer(s, str);
 }
 }
 
-#endif // BITSERY_BRIEF_SYNTAX_TYPE_STD_STRING_H
+#endif // BITSERY_BRIEF_SYNTAX_TYPE_EASTL_STRING_H

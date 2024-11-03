@@ -22,10 +22,32 @@
 
 #include <bitsery/ext/inheritance.h>
 #include <bitsery/ext/pointer.h>
-#include <bitsery/ext/std_smart_ptr.h>
+#include <bitsery/ext/eastl_smart_ptr.h>
 
 #include "serialization_test_utils.h"
 #include <gmock/gmock.h>
+
+void* __cdecl operator new[](size_t size, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
+void* __cdecl operator new[](size_t size, size_t alignement, size_t offset, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)alignement;
+	(void)offset;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
 
 using bitsery::ext::BaseClass;
 using bitsery::ext::VirtualBaseClass;
@@ -38,7 +60,7 @@ using bitsery::ext::StandardRTTI;
 using bitsery::ext::PointerObserver;
 using bitsery::ext::PointerOwner;
 using bitsery::ext::ReferencedByPointer;
-using bitsery::ext::StdSmartPtr;
+using bitsery::ext::EastlSmartPtr;
 
 using testing::Eq;
 
@@ -130,7 +152,7 @@ template<typename S>
 void
 serialize(S& s, PolyPtrWithPolyPtrBase& o)
 {
-  s.ext(o.ptr, StdSmartPtr{});
+  s.ext(o.ptr, EastlSmartPtr{});
 }
 
 struct DerivedPolyPtrWithPolyPtr : PolyPtrWithPolyPtrBase
@@ -140,7 +162,7 @@ template<typename S>
 void
 serialize(S& s, DerivedPolyPtrWithPolyPtr& o)
 {
-  s.ext(o.ptr, StdSmartPtr{});
+  s.ext(o.ptr, EastlSmartPtr{});
 }
 
 // define relationships between base class and derived classes for runtime
@@ -300,9 +322,9 @@ TEST_F(SerializeExtensionPointerWithAllocator,
   std::get<0>(plctx).setMemResource(&memRes);
 
   std::unique_ptr<Base> baseData{};
-  createSerializer().ext(baseData, StdSmartPtr{});
+  createSerializer().ext(baseData, EastlSmartPtr{});
   auto baseRes = std::unique_ptr<Base>(new Derived1{ 45, 64 });
-  createDeserializer().ext(baseRes, StdSmartPtr{});
+  createDeserializer().ext(baseRes, EastlSmartPtr{});
 
   EXPECT_THAT(memRes.allocs.size(), Eq(0u));
   EXPECT_THAT(memRes.deallocs.size(), Eq(1u));
@@ -324,10 +346,10 @@ TEST_F(SerializeExtensionPointerWithAllocator,
   std::get<0>(plctx).setMemResource(&memRes);
 
   std::unique_ptr<Base, CustomBaseDeleter> baseData{};
-  createSerializer().ext(baseData, StdSmartPtr{});
+  createSerializer().ext(baseData, EastlSmartPtr{});
   auto baseRes =
     std::unique_ptr<Base, CustomBaseDeleter>(new Derived1{ 45, 64 });
-  createDeserializer().ext(baseRes, StdSmartPtr{});
+  createDeserializer().ext(baseRes, EastlSmartPtr{});
 
   EXPECT_THAT(memRes.allocs.size(), Eq(0u));
   EXPECT_THAT(memRes.deallocs.size(), Eq(1u));
@@ -383,13 +405,13 @@ TEST_F(SerializeExtensionPointerWithAllocator,
     std::unique_ptr<PolyPtrWithPolyPtrBase>(new PolyPtrWithPolyPtrBase{});
   data->ptr = std::unique_ptr<Base>(new Derived1{ 5, 6 });
   createSerializer().ext(
-    data, StdSmartPtr{ bitsery::ext::PointerType::Nullable, &memRes2 });
+    data, EastlSmartPtr{ bitsery::ext::PointerType::Nullable, &memRes2 });
 
   auto res =
     std::unique_ptr<PolyPtrWithPolyPtrBase>(new DerivedPolyPtrWithPolyPtr{});
   res->ptr = std::unique_ptr<Base>(new Derived2{});
   createDeserializer().ext(
-    res, StdSmartPtr{ bitsery::ext::PointerType::Nullable, &memRes2 });
+    res, EastlSmartPtr{ bitsery::ext::PointerType::Nullable, &memRes2 });
 
   EXPECT_THAT(memRes1.allocs.size(), Eq(1u));
   // Base* was destroyed by unique_ptr on PolyPtrWithPolyPtrBase destructor,
@@ -411,13 +433,13 @@ TEST_F(SerializeExtensionPointerWithAllocator,
     std::unique_ptr<PolyPtrWithPolyPtrBase>(new PolyPtrWithPolyPtrBase{});
   data->ptr = std::unique_ptr<Base>(new Derived1{ 5, 6 });
   createSerializer().ext(
-    data, StdSmartPtr{ bitsery::ext::PointerType::Nullable, &memRes2, true });
+    data, EastlSmartPtr{ bitsery::ext::PointerType::Nullable, &memRes2, true });
 
   auto res =
     std::unique_ptr<PolyPtrWithPolyPtrBase>(new DerivedPolyPtrWithPolyPtr{});
   res->ptr = std::unique_ptr<Base>(new Derived2{});
   createDeserializer().ext(
-    res, StdSmartPtr{ bitsery::ext::PointerType::Nullable, &memRes2, true });
+    res, EastlSmartPtr{ bitsery::ext::PointerType::Nullable, &memRes2, true });
 
   EXPECT_THAT(memRes1.allocs.size(), Eq(0u));
   EXPECT_THAT(memRes1.deallocs.size(), Eq(0u));

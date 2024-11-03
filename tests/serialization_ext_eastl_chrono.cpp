@@ -1,6 +1,6 @@
 // MIT License
 //
-// Copyright (c) 2017 Mindaugas Vinkelis
+// Copyright (c) 2019 Mindaugas Vinkelis
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,8 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
+
+#include <bitsery/ext/eastl_chrono.h>
 
 #include "serialization_test_utils.h"
 #include <gmock/gmock.h>
@@ -45,66 +47,61 @@ void* __cdecl operator new[](size_t size, size_t alignement, size_t offset, cons
 	return new uint8_t[size];
 }
 
+using EastlDuration = bitsery::ext::EastlDuration;
+using EastlTimePoint = bitsery::ext::EastlTimePoint;
+
 using testing::Eq;
 
-TEST(SerializeBooleans, BoolAsBit)
+TEST(SerializeExtensionEastlChrono, IntegralDuration)
 {
+  SerializationContext ctx1;
+  using Hours = eastl::chrono::duration<int32_t, eastl::ratio<60>>;
 
-  SerializationContext ctx{};
-  bool t1{ true };
-  bool t2{ false };
-  bool res1;
-  bool res2;
-  auto& ser = ctx.createSerializer();
-  ser.enableBitPacking(
-    [&t1, &t2](SerializationContext::TSerializerBPEnabled& sbp) {
-      sbp.boolValue(t1);
-      sbp.boolValue(t2);
-    });
-  auto& des = ctx.createDeserializer();
-  des.enableBitPacking(
-    [&res1, &res2](SerializationContext::TDeserializerBPEnabled& sbp) {
-      sbp.boolValue(res1);
-      sbp.boolValue(res2);
-    });
+  Hours data{ 43 };
+  Hours res{};
 
-  EXPECT_THAT(res1, Eq(t1));
-  EXPECT_THAT(res2, Eq(t2));
-  EXPECT_THAT(ctx.getBufferSize(), Eq(1));
+  ctx1.createSerializer().ext4b(data, EastlDuration{});
+  ctx1.createDeserializer().ext4b(res, EastlDuration{});
+  EXPECT_THAT(res, Eq(data));
 }
 
-TEST(SerializeBooleans, BoolAsByte)
+TEST(SerializeExtensionEastlChrono, IntegralTimePoint)
 {
-  SerializationContext ctx;
-  bool t1{ true };
-  bool t2{ false };
-  bool res1;
-  bool res2;
-  auto& ser = ctx.createSerializer();
-  ser.boolValue(t1);
-  ser.boolValue(t2);
-  auto& des = ctx.createDeserializer();
-  des.boolValue(res1);
-  des.boolValue(res2);
+  SerializationContext ctx1;
+  using Duration = eastl::chrono::duration<int64_t, eastl::milli>;
+  using TP = eastl::chrono::time_point<eastl::chrono::system_clock, Duration>;
 
-  EXPECT_THAT(res1, Eq(t1));
-  EXPECT_THAT(res2, Eq(t2));
-  EXPECT_THAT(ctx.getBufferSize(), Eq(2));
+  TP data{ Duration{ 243 } };
+  TP res{};
+
+  ctx1.createSerializer().ext8b(data, EastlTimePoint{});
+  ctx1.createDeserializer().ext8b(res, EastlTimePoint{});
+  EXPECT_THAT(res, Eq(data));
 }
 
-TEST(SerializeBooleans,
-     WhenReadingBoolByteReadsMoreThanOneThenInvalidDataErrorAndResultIsFalse)
+TEST(SerializeExtensionEastlChrono, FloatDuration)
 {
-  SerializationContext ctx;
-  auto& ser = ctx.createSerializer();
-  ser.value1b(uint8_t{ 1 });
-  ser.value1b(uint8_t{ 2 });
-  bool res{};
-  auto& des = ctx.createDeserializer();
-  des.boolValue(res);
-  EXPECT_THAT(res, Eq(true));
-  des.boolValue(res);
-  EXPECT_THAT(res, Eq(false));
-  EXPECT_THAT(ctx.des->adapter().error(),
-              Eq(bitsery::ReaderError::InvalidData));
+  SerializationContext ctx1;
+  using Hours = eastl::chrono::duration<float, eastl::ratio<60>>;
+
+  Hours data{ 43.5f };
+  Hours res{};
+
+  ctx1.createSerializer().ext4b(data, EastlDuration{});
+  ctx1.createDeserializer().ext4b(res, EastlDuration{});
+  EXPECT_THAT(res, Eq(data));
+}
+
+TEST(SerializeExtensionEastlChrono, FloatTimePoint)
+{
+  SerializationContext ctx1;
+  using Duration = eastl::chrono::duration<double, eastl::milli>;
+  using TP = eastl::chrono::time_point<eastl::chrono::system_clock, Duration>;
+
+  TP data{ Duration{ 243457.4 } };
+  TP res{};
+
+  ctx1.createSerializer().ext8b(data, EastlTimePoint{});
+  ctx1.createDeserializer().ext8b(res, EastlTimePoint{});
+  EXPECT_THAT(res, Eq(data));
 }

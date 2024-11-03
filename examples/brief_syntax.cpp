@@ -9,6 +9,28 @@
 // get static assert error, saying to define serialize function.
 #include <bitsery/brief_syntax/vector.h>
 
+void* __cdecl operator new[](size_t size, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
+void* __cdecl operator new[](size_t size, size_t alignement, size_t offset, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)alignement;
+	(void)offset;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
 enum class MyEnum : uint16_t
 {
   V1,
@@ -19,7 +41,7 @@ struct MyStruct
 {
   uint32_t i;
   MyEnum e;
-  std::vector<float> fs;
+  eastl::vector<float> fs;
 
   // define serialize function as usual
   template<typename S>
@@ -31,7 +53,7 @@ struct MyStruct
 };
 
 // some helper types
-using Buffer = std::vector<uint8_t>;
+using Buffer = eastl::vector<uint8_t>;
 using OutputAdapter = bitsery::OutputBufferAdapter<Buffer>;
 using InputAdapter = bitsery::InputBufferAdapter<Buffer>;
 
@@ -46,8 +68,7 @@ main()
   Buffer buffer;
   auto writtenSize = bitsery::quickSerialization<OutputAdapter>(buffer, data);
 
-  auto state = bitsery::quickDeserialization<InputAdapter>(
-    { buffer.begin(), writtenSize }, res);
+  auto state = bitsery::quickDeserialization<InputAdapter>({ buffer.begin(), writtenSize }, res);
 
   assert(state.first == bitsery::ReaderError::NoError && state.second);
   assert(data.fs == res.fs && data.i == res.i && data.e == res.e);

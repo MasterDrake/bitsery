@@ -34,8 +34,8 @@ void
 processBriefSyntax(S& s, T&& head)
 {
   static_assert(
-    std::is_lvalue_reference<T>::value ||
-      std::is_base_of<brief_syntax::ModFnc, T>::value,
+    eastl::is_lvalue_reference<T>::value ||
+      eastl::is_base_of<brief_syntax::ModFnc, T>::value,
     "Argument must be either lvalue or subclass of brief_syntax::ModFnc");
   s.object(head);
 }
@@ -72,7 +72,7 @@ serialize(S& s, bool& v)
 
 template<typename S,
          typename T,
-         typename std::enable_if<details::IsFundamentalType<T>::value>::type* =
+         typename eastl::enable_if<details::IsFundamentalType<T>::value>::type* =
            nullptr>
 void
 serialize(S& s, T& v)
@@ -87,7 +87,7 @@ serialize(S& s, T& v)
 template<typename S,
          typename T,
          size_t N,
-         typename std::enable_if<std::is_integral<T>::value>::type* = nullptr>
+         typename eastl::enable_if<eastl::is_integral<T>::value>::type* = nullptr>
 void
 serialize(S&, T (&)[N])
 {
@@ -99,7 +99,7 @@ serialize(S&, T (&)[N])
 template<typename S,
          typename T,
          size_t N,
-         typename std::enable_if<!std::is_integral<T>::value>::type* = nullptr>
+         typename eastl::enable_if<!eastl::is_integral<T>::value>::type* = nullptr>
 void
 serialize(S& s, T (&obj)[N])
 {

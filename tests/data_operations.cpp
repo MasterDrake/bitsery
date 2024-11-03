@@ -26,6 +26,28 @@
 #include <bitsery/serializer.h>
 #include <gmock/gmock.h>
 
+void* __cdecl operator new[](size_t size, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
+void* __cdecl operator new[](size_t size, size_t alignement, size_t offset, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)alignement;
+	(void)offset;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
 using testing::ContainerEq;
 using testing::Eq;
 
@@ -57,10 +79,10 @@ TEST(DataBitsAndBytesOperations, WriteAndReadBitsMaxTypeValues)
   Buffer buf;
   Writer bw{ buf };
   AdapterBitPackingWriter bpw{ bw };
-  bpw.writeBits(std::numeric_limits<uint64_t>::max(), 64);
-  bpw.writeBits(std::numeric_limits<uint32_t>::max(), 32);
-  bpw.writeBits(std::numeric_limits<uint16_t>::max(), 16);
-  bpw.writeBits(std::numeric_limits<uint8_t>::max(), 8);
+  bpw.writeBits(eastl::numeric_limits<uint64_t>::max(), 64);
+  bpw.writeBits(eastl::numeric_limits<uint32_t>::max(), 32);
+  bpw.writeBits(eastl::numeric_limits<uint16_t>::max(), 16);
+  bpw.writeBits(eastl::numeric_limits<uint8_t>::max(), 8);
   bpw.flush();
 
   Reader br{ buf.begin(), bpw.writtenBytesCount() };
@@ -74,10 +96,10 @@ TEST(DataBitsAndBytesOperations, WriteAndReadBitsMaxTypeValues)
   bpr.readBits(v16, 16);
   bpr.readBits(v8, 8);
 
-  EXPECT_THAT(v64, Eq(std::numeric_limits<uint64_t>::max()));
-  EXPECT_THAT(v32, Eq(std::numeric_limits<uint32_t>::max()));
-  EXPECT_THAT(v16, Eq(std::numeric_limits<uint16_t>::max()));
-  EXPECT_THAT(v8, Eq(std::numeric_limits<uint8_t>::max()));
+  EXPECT_THAT(v64, Eq(eastl::numeric_limits<uint64_t>::max()));
+  EXPECT_THAT(v32, Eq(eastl::numeric_limits<uint32_t>::max()));
+  EXPECT_THAT(v16, Eq(eastl::numeric_limits<uint16_t>::max()));
+  EXPECT_THAT(v8, Eq(eastl::numeric_limits<uint8_t>::max()));
 }
 
 TEST(DataBitsAndBytesOperations, WriteAndReadBits)

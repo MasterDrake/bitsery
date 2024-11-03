@@ -25,7 +25,7 @@
 
 #include "../ext/utils/memory_resource.h"
 #include "../traits/core/traits.h"
-#include <unordered_set>
+#include <EASTL/unordered_set.h>
 
 namespace bitsery {
 
@@ -49,7 +49,7 @@ public:
   void beginBase(const TDerived& derived, const TBase&)
   {
     if (_depth == 0) {
-      const void* ptr = std::addressof(derived);
+      const void* ptr = eastl::addressof(derived);
       if (_parentPtr != ptr)
         _virtualBases.clear();
       _parentPtr = ptr;
@@ -61,7 +61,7 @@ public:
   bool beginVirtualBase(const TDerived& derived, const TBase& base)
   {
     beginBase(derived, base);
-    return _virtualBases.emplace(std::addressof(base)).second;
+    return _virtualBases.emplace(eastl::addressof(base)).second;
   }
 
   void end() { --_depth; }
@@ -71,9 +71,9 @@ private:
   size_t _depth{};
   const void* _parentPtr{};
   // add virtual bases to the list, as long as we're on the same parent
-  std::unordered_set<const void*,
-                     std::hash<const void*>,
-                     std::equal_to<const void*>,
+  eastl::unordered_set<const void*,
+                     eastl::hash<const void*>,
+                     eastl::equal_to<const void*>,
                      pointer_utils::StdPolyAlloc<const void*>>
     _virtualBases;
 };
@@ -141,7 +141,7 @@ namespace traits {
 template<typename TBase, typename T>
 struct ExtensionTraits<ext::BaseClass<TBase>, T>
 {
-  static_assert(std::is_base_of<TBase, T>::value, "Invalid base class");
+  static_assert(eastl::is_base_of<TBase, T>::value, "Invalid base class");
 
   using TValue = TBase;
   static constexpr bool SupportValueOverload = false;
@@ -152,7 +152,7 @@ struct ExtensionTraits<ext::BaseClass<TBase>, T>
 template<typename TBase, typename T>
 struct ExtensionTraits<ext::VirtualBaseClass<TBase>, T>
 {
-  static_assert(std::is_base_of<TBase, T>::value, "Invalid base class");
+  static_assert(eastl::is_base_of<TBase, T>::value, "Invalid base class");
 
   using TValue = TBase;
   static constexpr bool SupportValueOverload = false;

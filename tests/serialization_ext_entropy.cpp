@@ -26,6 +26,28 @@
 #include "serialization_test_utils.h"
 #include <gmock/gmock.h>
 
+void* __cdecl operator new[](size_t size, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
+void* __cdecl operator new[](size_t size, size_t alignement, size_t offset, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)alignement;
+	(void)offset;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
 using namespace testing;
 
 using bitsery::ext::Entropy;
@@ -125,7 +147,7 @@ TEST(SerializeExtensionEntropy,
   MyStruct1 res;
   constexpr size_t N = 4;
 
-  std::vector<MyStruct1> values{ MyStruct1{ 12, 10 },
+  eastl::vector<MyStruct1> values{ MyStruct1{ 12, 10 },
                                  MyStruct1{ 485, 454 },
                                  MyStruct1{ 4849, 89 },
                                  MyStruct1{ 0, 1 } };
@@ -141,7 +163,7 @@ TEST(SerializeExtensionEntropy,
         ser.ext(data.i1, rangeForValue);
         ser.ext(data.i2, rangeForValue);
       };
-      ser.ext(v, Entropy<std::vector<MyStruct1>>(values, false), serLambda);
+      ser.ext(v, Entropy<eastl::vector<MyStruct1>>(values, false), serLambda);
     });
 
   ctx.createDeserializer().enableBitPacking(
@@ -150,7 +172,7 @@ TEST(SerializeExtensionEntropy,
         des.ext(data.i1, rangeForValue);
         des.ext(data.i2, rangeForValue);
       };
-      des.ext(res, Entropy<std::vector<MyStruct1>>(values, false), desLambda);
+      des.ext(res, Entropy<eastl::vector<MyStruct1>>(values, false), desLambda);
     });
 
   EXPECT_THAT(res, Eq(v));
@@ -168,7 +190,7 @@ TEST(SerializeExtensionEntropy,
   MyStruct1 v = { 8945, 4456 };
   MyStruct1 res;
 
-  std::vector<MyStruct1> values{ MyStruct1{ 12, 10 },
+  eastl::vector<MyStruct1> values{ MyStruct1{ 12, 10 },
                                  MyStruct1{ 485, 454 },
                                  MyStruct1{ 4849, 89 },
                                  MyStruct1{ 0, 1 } };
@@ -179,12 +201,12 @@ TEST(SerializeExtensionEntropy,
   ctx.createSerializer().enableBitPacking(
     [&v, &values, &rangeForValue](BPSer& ser) {
       // lambdas differ only in capture clauses, it would make sense to use
-      // std::bind, but debugger crashes when it sees std::bind...
+      // std::bind, but debugger crashes when it sees eastl::bind...
       auto serLambda = [&rangeForValue](BPSer& ser, MyStruct1& data) {
         ser.ext(data.i1, rangeForValue);
         ser.ext(data.i2, rangeForValue);
       };
-      ser.ext(v, Entropy<std::vector<MyStruct1>>(values, true), serLambda);
+      ser.ext(v, Entropy<eastl::vector<MyStruct1>>(values, true), serLambda);
     });
   ctx.createDeserializer().enableBitPacking(
     [&res, &values, &rangeForValue](BPDes& des) {
@@ -192,7 +214,7 @@ TEST(SerializeExtensionEntropy,
         des.ext(data.i1, rangeForValue);
         des.ext(data.i2, rangeForValue);
       };
-      des.ext(res, Entropy<std::vector<MyStruct1>>(values, true), desLambda);
+      des.ext(res, Entropy<eastl::vector<MyStruct1>>(values, true), desLambda);
     });
 
   EXPECT_THAT(res, Eq(v));
@@ -207,7 +229,7 @@ TEST(SerializeExtensionEntropy, WhenEntropyEncodedThenCustomFunctionNotInvoked)
   MyStruct1 v = { 4849, 89 };
   MyStruct1 res;
 
-  std::list<MyStruct1> values{ MyStruct1{ 12, 10 },
+  eastl::list<MyStruct1> values{ MyStruct1{ 12, 10 },
                                MyStruct1{ 485, 454 },
                                MyStruct1{ 4849, 89 },
                                MyStruct1{ 0, 1 } };
@@ -215,11 +237,11 @@ TEST(SerializeExtensionEntropy, WhenEntropyEncodedThenCustomFunctionNotInvoked)
   SerializationContext ctx;
   ctx.createSerializer().enableBitPacking([&v, &values](BPSer& ser) {
     ser.ext(
-      v, Entropy<std::list<MyStruct1>>{ values }, [](BPSer&, MyStruct1&) {});
+      v, Entropy<eastl::list<MyStruct1>>{ values }, [](BPSer&, MyStruct1&) {});
   });
   ctx.createDeserializer().enableBitPacking([&res, &values](BPDes& des) {
     des.ext(
-      res, Entropy<std::list<MyStruct1>>{ values }, [](BPDes&, MyStruct1&) {});
+      res, Entropy<eastl::list<MyStruct1>>{ values }, [](BPDes&, MyStruct1&) {});
   });
 
   EXPECT_THAT(res, Eq(v));

@@ -36,78 +36,78 @@ public:
   template<typename Ser, typename T, typename Fnc>
   void serialize(Ser& s, const T& v, Fnc&&) const
   {
-    static_assert(std::is_integral<T>::value || std::is_enum<T>::value, "");
+    static_assert(eastl::is_integral<T>::value || eastl::is_enum<T>::value, "");
     using TValue = typename IntegralFromFundamental<T>::TValue;
     serializeImpl(s.adapter(),
                   reinterpret_cast<const TValue&>(v),
-                  std::integral_constant<bool, sizeof(T) != 1>{});
+                  eastl::integral_constant<bool, sizeof(T) != 1>{});
   }
 
   template<typename Des, typename T, typename Fnc>
   void deserialize(Des& d, T& v, Fnc&&) const
   {
-    static_assert(std::is_integral<T>::value || std::is_enum<T>::value, "");
+    static_assert(eastl::is_integral<T>::value || eastl::is_enum<T>::value, "");
     using TValue = typename IntegralFromFundamental<T>::TValue;
     deserializeImpl(d.adapter(),
                     reinterpret_cast<TValue&>(v),
-                    std::integral_constant<bool, sizeof(T) != 1>{});
+                    eastl::integral_constant<bool, sizeof(T) != 1>{});
   }
 
 private:
   // if value is 1byte size, just serialize/ deserialize whole value
   template<typename Writer, typename T>
-  void serializeImpl(Writer& writer, const T& v, std::false_type) const
+  void serializeImpl(Writer& writer, const T& v, eastl::false_type) const
   {
     writer.template writeBytes<1>(v);
   }
 
   template<typename Reader, typename T>
-  void deserializeImpl(Reader& reader, T& v, std::false_type) const
+  void deserializeImpl(Reader& reader, T& v, eastl::false_type) const
   {
     reader.template readBytes<1>(v);
   }
 
   // when value is bigger than 1byte size,
   template<typename Writer, typename T>
-  void serializeImpl(Writer& writer, const T& v, std::true_type) const
+  void serializeImpl(Writer& writer, const T& v, eastl::true_type) const
   {
     auto val = zigZagEncode(
-      v, std::is_signed<typename IntegralFromFundamental<T>::TValue>{});
+      v, eastl::is_signed<typename IntegralFromFundamental<T>::TValue>{});
     writeBytes(writer, val);
   }
 
   template<typename Reader, typename T>
-  void deserializeImpl(Reader& reader, T& v, std::true_type) const
+  void deserializeImpl(Reader& reader, T& v, eastl::true_type) const
   {
     using TUnsigned = SameSizeUnsigned<T>;
     TUnsigned res{};
     readBytes<Reader::TConfig::CheckDataErrors>(reader, res);
     v = zigZagDecode<T>(
-      res, std::is_signed<typename IntegralFromFundamental<T>::TValue>{});
+      res, eastl::is_signed<typename IntegralFromFundamental<T>::TValue>{});
   }
 
   // zigzag encode signed types
   template<typename T>
-  const SameSizeUnsigned<T>& zigZagEncode(const T& v, std::false_type) const
+  const SameSizeUnsigned<T>& zigZagEncode(const T& v, eastl::false_type) const
   {
     return v;
   }
 
   template<typename TResult, typename TUnsigned>
-  const TResult& zigZagDecode(const TUnsigned& v, std::false_type) const
+  const TResult& zigZagDecode(const TUnsigned& v, eastl::false_type) const
   {
     return v;
   }
 
   template<typename T>
-  SameSizeUnsigned<T> zigZagEncode(const T& v, std::true_type) const
+  SameSizeUnsigned<T> zigZagEncode(const T& v, eastl::true_type) const
   {
     return static_cast<SameSizeUnsigned<T>>((v << 1) ^
                                             (v >> (BitsSize<T>::value - 1)));
   }
 
   template<typename TResult, typename TUnsigned>
-  TResult zigZagDecode(TUnsigned v, std::true_type) const
+  TResult zigZagDecode(TUnsigned v, eastl::true_type) const
   {
     return static_cast<TResult>(
       (v >> 1) ^
@@ -143,14 +143,14 @@ private:
     handleReadOverflow<Reader, T>(r,
                                   i,
                                   b1,
-                                  std::integral_constant < bool,
+                                  eastl::integral_constant < bool,
                                   CheckOverflow&& CheckErrors > {});
   }
   template<typename Reader, typename T>
   void handleReadOverflow(Reader& r,
                           unsigned shiftedBy,
                           uint8_t remainder,
-                          std::true_type) const
+                          eastl::true_type) const
   {
     constexpr auto TBITS = sizeof(T) * 8;
     if (shiftedBy > TBITS && remainder >> (TBITS + 7 - shiftedBy)) {
@@ -159,7 +159,7 @@ private:
   }
 
   template<typename Reader, typename T>
-  void handleReadOverflow(Reader&, unsigned, uint8_t, std::false_type) const
+  void handleReadOverflow(Reader&, unsigned, uint8_t, eastl::false_type) const
   {
   }
 };

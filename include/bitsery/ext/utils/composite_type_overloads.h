@@ -24,14 +24,14 @@
 #define BITSERY_EXT_COMPOSITE_TYPE_OVERLOADS_H
 
 #include "../../details/serialization_common.h"
-#include <functional>
+#include <EASTL/functional.h>
 
 #if __cplusplus < 201703L
 #error these utils requires c++17
 // in theory, it could be implemented using C++11
 // but without class template argument deduction guides that would be very
-// inconvenient to use these are very helpul for sum types (e.g. std::variant),
-// but for product types (e.g. std::tuple) you can you can easily do it your
+// inconvenient to use these are very helpul for sum types (e.g. eastl::variant),
+// but for product types (e.g. eastl::tuple) you can you can easily do it your
 // self with lambda, without extension
 #endif
 
@@ -97,19 +97,19 @@ class CompositeTypeOverloadsUtils
 {
 protected:
   // converts run-time index to compile-time index,
-  // by calling lambda with std::integral_constant<size_t, INDEX>
+  // by calling lambda with eastl::integral_constant<size_t, INDEX>
   template<typename Fnc, typename... Ts>
   void execIndex(size_t index, CompositeType<Ts...>& obj, Fnc&& fnc) const
   {
     execIndexImpl(
-      index, obj, std::forward<Fnc>(fnc), std::index_sequence_for<Ts...>{});
+      index, obj, eastl::forward<Fnc>(fnc), eastl::index_sequence_for<Ts...>{});
   }
 
   // call lambda for all indexes in composite type
   template<typename Fnc, typename... Ts>
   void execAll(CompositeType<Ts...>& obj, Fnc&& fnc) const
   {
-    execAllImpl(obj, std::forward<Fnc>(fnc), std::index_sequence_for<Ts...>{});
+    execAllImpl(obj, eastl::forward<Fnc>(fnc), eastl::index_sequence_for<Ts...>{});
   }
 
   // serialize a type, by using overload first
@@ -118,7 +118,7 @@ protected:
   {
     // first check if overload exists, otherwise try to call serialize method
     if constexpr (hasOverload<S, T>()) {
-      std::invoke(*this, s, v);
+      eastl::invoke(*this, s, v);
     } else {
       static_assert(
         details::SerializeFunction<S, T>::isDefined(),
@@ -131,25 +131,25 @@ private:
   template<typename S, typename T>
   static constexpr bool hasOverload()
   {
-    return std::is_invocable<ext::CompositeTypeOverloads<Overloads...>,
-                             std::add_lvalue_reference_t<S>,
-                             std::add_lvalue_reference_t<T>>::value;
+    return eastl::is_invocable<ext::CompositeTypeOverloads<Overloads...>,
+                             eastl::add_lvalue_reference_t<S>,
+                             eastl::add_lvalue_reference_t<T>>::value;
   }
 
   template<typename Variant, typename Fnc, size_t... Is>
   void execIndexImpl(size_t index,
                      Variant& obj,
                      Fnc&& fnc,
-                     std::index_sequence<Is...>) const
+                     eastl::index_sequence<Is...>) const
   {
-    ((index == Is ? fnc(obj, std::integral_constant<size_t, Is>{}), 0 : 0),
+    ((index == Is ? fnc(obj, eastl::integral_constant<size_t, Is>{}), 0 : 0),
      ...);
   }
 
   template<typename Variant, typename Fnc, size_t... Is>
-  void execAllImpl(Variant& obj, Fnc&& fnc, std::index_sequence<Is...>) const
+  void execAllImpl(Variant& obj, Fnc&& fnc, eastl::index_sequence<Is...>) const
   {
-    (fnc(obj, std::integral_constant<size_t, Is>{}), ...);
+    (fnc(obj, eastl::integral_constant<size_t, Is>{}), ...);
   }
 };
 

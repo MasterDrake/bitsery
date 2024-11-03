@@ -20,28 +20,28 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef BITSERY_EXT_STD_STACK_H
-#define BITSERY_EXT_STD_STACK_H
+#ifndef BITSERY_EXT_EASTL_STACK_H
+#define BITSERY_EXT_EASTL_STACK_H
 
 #include "../traits/deque.h"
-#include <stack>
+#include <EASTL/stack.h>
 
 namespace bitsery {
 namespace ext {
 
-class StdStack
+class EastlStack
 {
 private:
   // inherit from stack so we could take underlying container
   template<typename T, typename C>
-  struct StackCnt : public std::stack<T, C>
+  struct StackCnt : public eastl::stack<T, C>
   {
-    static const C& getContainer(const std::stack<T, C>& s)
+    static const C& getContainer(const eastl::stack<T, C>& s)
     {
       // get address of underlying container
       return s.*(&StackCnt::c);
     }
-    static C& getContainer(std::stack<T, C>& s)
+    static C& getContainer(eastl::stack<T, C>& s)
     {
       // get address of underlying container
       return s.*(&StackCnt::c);
@@ -50,28 +50,28 @@ private:
   size_t _maxSize;
 
 public:
-  explicit StdStack(size_t maxSize)
+  explicit EastlStack(size_t maxSize)
     : _maxSize{ maxSize } {};
 
   template<typename Ser, typename T, typename C, typename Fnc>
-  void serialize(Ser& ser, const std::stack<T, C>& obj, Fnc&& fnc) const
+  void serialize(Ser& ser, const eastl::stack<T, C>& obj, Fnc&& fnc) const
   {
     ser.container(
-      StackCnt<T, C>::getContainer(obj), _maxSize, std::forward<Fnc>(fnc));
+      StackCnt<T, C>::getContainer(obj), _maxSize, eastl::forward<Fnc>(fnc));
   }
 
   template<typename Des, typename T, typename C, typename Fnc>
-  void deserialize(Des& des, std::stack<T, C>& obj, Fnc&& fnc) const
+  void deserialize(Des& des, eastl::stack<T, C>& obj, Fnc&& fnc) const
   {
     des.container(
-      StackCnt<T, C>::getContainer(obj), _maxSize, std::forward<Fnc>(fnc));
+      StackCnt<T, C>::getContainer(obj), _maxSize, eastl::forward<Fnc>(fnc));
   }
 };
 }
 
 namespace traits {
 template<typename T, typename Seq>
-struct ExtensionTraits<ext::StdStack, std::stack<T, Seq>>
+struct ExtensionTraits<ext::EastlStack, eastl::stack<T, Seq>>
 {
   using TValue = T;
   static constexpr bool SupportValueOverload = true;
@@ -82,4 +82,4 @@ struct ExtensionTraits<ext::StdStack, std::stack<T, Seq>>
 
 }
 
-#endif // BITSERY_EXT_STD_STACK_H
+#endif // BITSERY_EXT_EASTL_STACK_H

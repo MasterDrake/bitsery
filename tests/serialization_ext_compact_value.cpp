@@ -25,8 +25,28 @@
 #include <gmock/gmock.h>
 
 #include <bitsery/traits/array.h>
-#include <bitset>
-#include <chrono>
+
+void* __cdecl operator new[](size_t size, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
+void* __cdecl operator new[](size_t size, size_t alignement, size_t offset, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)alignement;
+	(void)offset;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
 
 using bitsery::EndiannessType;
 using bitsery::ext::CompactValue;
@@ -42,7 +62,7 @@ getValue(bool isPositive, size_t significantBits)
   if (significantBits == 0)
     return v;
 
-  using TUnsigned = typename std::make_unsigned<TValue>::type;
+  using TUnsigned = typename eastl::make_unsigned<TValue>::type;
   TUnsigned mask = {};
   mask = static_cast<TUnsigned>(~mask); // invert shiftByBits
   auto shiftBy = bitsery::details::BitsSize<TValue>::value - significantBits;
@@ -53,7 +73,7 @@ getValue(bool isPositive, size_t significantBits)
 
 // helper function, that serialize and return deserialized value
 template<typename TConfig, typename TValue>
-std::pair<TValue, size_t>
+eastl::pair<TValue, size_t>
 serializeAndGetDeserialized(TValue data)
 {
   Buffer buf{};
@@ -85,7 +105,7 @@ struct BigEndianConfig
 template<typename TValue, bool isPositiveNr, typename TConfig>
 struct TC
 {
-  static_assert(isPositiveNr || std::is_signed<TValue>::value, "");
+  static_assert(isPositiveNr || eastl::is_signed<TValue>::value, "");
 
   using Value = TValue;
   using Config = TConfig;
@@ -148,7 +168,7 @@ template<typename TValue,
          size_t resultBytes>
 struct SizeTC
 {
-  static_assert(isPositiveNr || std::is_signed<TValue>::value, "");
+  static_assert(isPositiveNr || eastl::is_signed<TValue>::value, "");
   static_assert(bitsery::details::BitsSize<TValue>::value >= significantBits,
                 "");
 

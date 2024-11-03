@@ -77,15 +77,15 @@ struct RangeSpec
 };
 
 template<typename T>
-struct RangeSpec<T, typename std::enable_if<std::is_enum<T>::value>::type>
+struct RangeSpec<T, typename eastl::enable_if<eastl::is_enum<T>::value>::type>
 {
 
   constexpr RangeSpec(T minValue, T maxValue)
     : min{ minValue }
     , max{ maxValue }
     , bitsRequired{ calcRequiredBits(
-        static_cast<typename std::underlying_type<T>::type>(min),
-        static_cast<typename std::underlying_type<T>::type>(max)) }
+        static_cast<typename eastl::underlying_type<T>::type>(min),
+        static_cast<typename eastl::underlying_type<T>::type>(max)) }
   {
   }
 
@@ -97,7 +97,7 @@ struct RangeSpec<T, typename std::enable_if<std::is_enum<T>::value>::type>
 template<typename T>
 struct RangeSpec<
   T,
-  typename std::enable_if<std::is_floating_point<T>::value>::type>
+  typename eastl::enable_if<eastl::is_floating_point<T>::value>::type>
 {
 
   constexpr RangeSpec(T minValue, T maxValue, ext::BitsConstraint bits)
@@ -122,7 +122,7 @@ struct RangeSpec<
 };
 
 template<typename T,
-         typename std::enable_if<std::is_integral<T>::value>::type* = nullptr>
+         typename eastl::enable_if<eastl::is_integral<T>::value>::type* = nullptr>
 details::SameSizeUnsigned<T>
 getRangeValue(const T& v, const RangeSpec<T>& r)
 {
@@ -130,7 +130,7 @@ getRangeValue(const T& v, const RangeSpec<T>& r)
 }
 
 template<typename T,
-         typename std::enable_if<std::is_enum<T>::value>::type* = nullptr>
+         typename eastl::enable_if<eastl::is_enum<T>::value>::type* = nullptr>
 details::SameSizeUnsigned<T>
 getRangeValue(const T& v, const RangeSpec<T>& r)
 {
@@ -140,7 +140,7 @@ getRangeValue(const T& v, const RangeSpec<T>& r)
 
 template<
   typename T,
-  typename std::enable_if<std::is_floating_point<T>::value>::type* = nullptr>
+  typename eastl::enable_if<eastl::is_floating_point<T>::value>::type* = nullptr>
 details::SameSizeUnsigned<T>
 getRangeValue(const T& v, const RangeSpec<T>& r)
 {
@@ -151,7 +151,7 @@ getRangeValue(const T& v, const RangeSpec<T>& r)
 }
 
 template<typename T,
-         typename std::enable_if<std::is_integral<T>::value>::type* = nullptr>
+         typename eastl::enable_if<eastl::is_integral<T>::value>::type* = nullptr>
 void
 setRangeValue(T& v, const RangeSpec<T>& r)
 {
@@ -159,17 +159,17 @@ setRangeValue(T& v, const RangeSpec<T>& r)
 }
 
 template<typename T,
-         typename std::enable_if<std::is_enum<T>::value>::type* = nullptr>
+         typename eastl::enable_if<eastl::is_enum<T>::value>::type* = nullptr>
 void
 setRangeValue(T& v, const RangeSpec<T>& r)
 {
-  using VT = typename std::underlying_type<T>::type;
+  using VT = typename eastl::underlying_type<T>::type;
   reinterpret_cast<VT&>(v) += static_cast<VT>(r.min);
 }
 
 template<
   typename T,
-  typename std::enable_if<std::is_floating_point<T>::value>::type* = nullptr>
+  typename eastl::enable_if<eastl::is_floating_point<T>::value>::type* = nullptr>
 void
 setRangeValue(T& v, const RangeSpec<T>& r)
 {
@@ -181,7 +181,7 @@ setRangeValue(T& v, const RangeSpec<T>& r)
 }
 
 template<typename T,
-         typename std::enable_if<std::is_arithmetic<T>::value>::type* = nullptr>
+         typename eastl::enable_if<eastl::is_arithmetic<T>::value>::type* = nullptr>
 bool
 isRangeValid(const T& v, const RangeSpec<T>& r)
 {
@@ -189,11 +189,11 @@ isRangeValid(const T& v, const RangeSpec<T>& r)
 }
 
 template<typename T,
-         typename std::enable_if<std::is_enum<T>::value>::type* = nullptr>
+         typename eastl::enable_if<eastl::is_enum<T>::value>::type* = nullptr>
 bool
 isRangeValid(const T& v, const RangeSpec<T>& r)
 {
-  using VT = typename std::underlying_type<T>::type;
+  using VT = typename eastl::underlying_type<T>::type;
   return !(static_cast<VT>(r.min) > static_cast<VT>(v) ||
            static_cast<VT>(v) > static_cast<VT>(r.max));
 }
@@ -207,7 +207,7 @@ class ValueRange
 public:
   template<typename... Args>
   constexpr ValueRange(const TValue& min, const TValue& max, Args&&... args)
-    : _range{ min, max, std::forward<Args>(args)... }
+    : _range{ min, max, eastl::forward<Args>(args)... }
   {
   }
 
@@ -228,14 +228,14 @@ public:
                     _range.bitsRequired);
     details::setRangeValue(v, _range);
     handleInvalidRange(
-      reader, v, std::integral_constant<bool, Des::TConfig::CheckDataErrors>{});
+      reader, v, eastl::integral_constant<bool, Des::TConfig::CheckDataErrors>{});
   }
 
   constexpr size_t getRequiredBits() const { return _range.bitsRequired; };
 
 private:
   template<typename Reader, typename T>
-  void handleInvalidRange(Reader& reader, T& v, std::true_type) const
+  void handleInvalidRange(Reader& reader, T& v, eastl::true_type) const
   {
     if (!details::isRangeValid(v, _range)) {
       reader.error(ReaderError::InvalidData);
@@ -244,7 +244,7 @@ private:
   }
 
   template<typename Reader, typename T>
-  void handleInvalidRange(Reader&, T&, std::false_type) const
+  void handleInvalidRange(Reader&, T&, eastl::false_type) const
   {
   }
 

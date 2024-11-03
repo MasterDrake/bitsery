@@ -5,10 +5,31 @@
 #include <bitsery/bitsery.h>
 #include <bitsery/ext/inheritance.h>
 #include <bitsery/ext/pointer.h>
-#include <bitsery/ext/std_smart_ptr.h>
+#include <bitsery/ext/eastl_smart_ptr.h>
 #include <bitsery/traits/vector.h>
 #include <cassert>
-#include <memory>
+
+void* __cdecl operator new[](size_t size, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
+void* __cdecl operator new[](size_t size, size_t alignement, size_t offset, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)alignement;
+	(void)offset;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
 
 // in order to work with polymorphic types, we need to describe few steps:
 //  1) describe relationships between base and derived types
@@ -21,7 +42,7 @@
 using bitsery::ext::BaseClass;
 
 using bitsery::ext::PointerObserver;
-using bitsery::ext::StdSmartPtr;
+using bitsery::ext::EastlSmartPtr;
 
 // define our data structures
 struct Color
@@ -29,7 +50,7 @@ struct Color
   float r{}, g{}, b{};
   bool operator==(const Color& o) const
   {
-    return std::tie(r, g, b) == std::tie(o.r, o.g, o.b);
+    return eastl::tie(r, g, b) == eastl::tie(o.r, o.g, o.b);
   }
 };
 
@@ -46,7 +67,7 @@ struct Circle : Shape
   int32_t radius{};
   bool operator==(const Circle& o) const
   {
-    return std::tie(radius, clr) == std::tie(o.radius, o.clr);
+    return eastl::tie(radius, clr) == eastl::tie(o.radius, o.clr);
   }
 };
 
@@ -56,7 +77,7 @@ struct Rectangle : Shape
   int32_t height{};
   bool operator==(const Rectangle& o) const
   {
-    return std::tie(width, height, clr) == std::tie(o.width, o.height, o.clr);
+    return eastl::tie(width, height, clr) == eastl::tie(o.width, o.height, o.clr);
   }
 };
 
@@ -65,8 +86,8 @@ struct RoundedRectangle : Rectangle
   int32_t radius{};
   bool operator==(const RoundedRectangle& o) const
   {
-    return std::tie(radius, static_cast<const Rectangle&>(*this)) ==
-           std::tie(o.radius, static_cast<const Rectangle&>(o));
+    return eastl::tie(radius, static_cast<const Rectangle&>(*this)) ==
+           eastl::tie(o.radius, static_cast<const Rectangle&>(o));
   }
 };
 
@@ -118,10 +139,10 @@ serialize(S& s, RoundedRectangle& o)
 // define our test structure
 struct SomeShapes
 {
-  std::vector<std::shared_ptr<Shape>> sharedList;
-  std::unique_ptr<Shape> uniquePtr;
+  eastl::vector<eastl::shared_ptr<Shape>> sharedList;
+  eastl::unique_ptr<Shape> uniquePtr;
   // weak ptr and refPtr will point to sharedList
-  std::weak_ptr<Shape> weakPtr;
+  eastl::weak_ptr<Shape> weakPtr;
   Shape* refPtr;
 };
 
@@ -167,14 +188,14 @@ template<typename S>
 void
 serialize(S& s, SomeShapes& o)
 {
-  s.ext(o.uniquePtr, StdSmartPtr{});
+  s.ext(o.uniquePtr, EastlSmartPtr{});
   // to make things more interesting first serialize weakPtr and refPtr,
   // even though objects that weakPtr and refPtr is serialized later,
   // bitsery will work regardless
-  s.ext(o.weakPtr, StdSmartPtr{});
+  s.ext(o.weakPtr, EastlSmartPtr{});
   s.ext(o.refPtr, PointerObserver{});
-  s.container(o.sharedList, 100, [](S& s, std::shared_ptr<Shape>& item) {
-    s.ext(item, StdSmartPtr{});
+  s.container(o.sharedList, 100, [](S& s, eastl::shared_ptr<Shape>& item) {
+    s.ext(item, EastlSmartPtr{});
   });
 }
 
@@ -209,7 +230,7 @@ using MyPolymorphicClassesForRegistering =
   bitsery::ext::PolymorphicClassesList<Shape>;
 
 // some helper types
-using Buffer = std::vector<uint8_t>;
+using Buffer = eastl::vector<uint8_t>;
 using Writer = bitsery::OutputBufferAdapter<Buffer>;
 using Reader = bitsery::InputBufferAdapter<Buffer>;
 
@@ -217,7 +238,7 @@ using Reader = bitsery::InputBufferAdapter<Buffer>;
 // 1) we need pointer linking context to work with pointers
 // 2) we need polymorphic context to be able to work with polymorphic types
 using TContext =
-  std::tuple<bitsery::ext::PointerLinkingContext,
+  eastl::tuple<bitsery::ext::PointerLinkingContext,
              bitsery::ext::PolymorphicContext<bitsery::ext::StandardRTTI>>;
 // NOTE:
 //  RTTI can be customizable, if you can't use dynamic_cast and typeid, and have
@@ -270,7 +291,7 @@ main()
     //  classes that is defined in first step. NOTE: you dont need to add
     //  Rectangle to reach for RoundedRectangle
     TContext ctx{};
-    std::get<1>(ctx).registerBasesList<MySerializer>(
+    eastl::get<1>(ctx).registerBasesList<MySerializer>(
       MyPolymorphicClassesForRegistering{});
     // create writer and serialize
     MySerializer ser{ ctx, buffer };
@@ -282,12 +303,12 @@ main()
     // this ensures that all non-owning pointers points to data that has been
     // serialized, so we can successfully reconstruct pointers after
     // deserialization
-    assert(std::get<0>(ctx).isValid());
+    assert(eastl::get<0>(ctx).isValid());
   }
   SomeShapes res{};
   {
     TContext ctx{};
-    std::get<1>(ctx).registerBasesList<MyDeserializer>(
+    eastl::get<1>(ctx).registerBasesList<MyDeserializer>(
       MyPolymorphicClassesForRegistering{});
     // deserialize our data
     MyDeserializer des{ ctx, buffer.begin(), writtenSize };
@@ -295,13 +316,13 @@ main()
     assert(des.adapter().error() == bitsery::ReaderError::NoError &&
            des.adapter().isCompletedSuccessfully());
     // also check for dangling pointers, after deserialization
-    assert(std::get<0>(ctx).isValid());
+    assert(eastl::get<0>(ctx).isValid());
     // clear shared state from pointer linking context,
     // it is only required if there are any pointers that manage shared state,
-    // e.g. std::shared_ptr
+    // e.g. eastl::shared_ptr
     assert(res.weakPtr.use_count() ==
            2); // one in sharedList and one in pointer linking context
-    std::get<0>(ctx).clearSharedState();
+    eastl::get<0>(ctx).clearSharedState();
     assert(res.weakPtr.use_count() == 1);
   }
   assertSameShapes(data, res);

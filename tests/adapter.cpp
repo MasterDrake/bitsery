@@ -32,8 +32,30 @@
 
 #include <gmock/gmock.h>
 
+void* __cdecl operator new[](size_t size, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
+void* __cdecl operator new[](size_t size, size_t alignement, size_t offset, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)alignement;
+	(void)offset;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
 // some helper types
-using Buffer = std::vector<char>;
+using Buffer = eastl::vector<char>;
 using OutputAdapter = bitsery::OutputBufferAdapter<Buffer>;
 using InputAdapter = bitsery::InputBufferAdapter<Buffer>;
 
@@ -83,8 +105,8 @@ TEST(
 TEST(OutputBuffer, CanWorkWithFixedSizeBuffer)
 {
   // setup data
-  std::array<uint8_t, 10> buf{};
-  bitsery::OutputBufferAdapter<std::array<uint8_t, 10>> w{ buf };
+  eastl::array<uint8_t, 10> buf{};
+  bitsery::OutputBufferAdapter<eastl::array<uint8_t, 10>> w{ buf };
   const auto initialSize = buf.size();
   EXPECT_THAT(buf.size(), Eq(initialSize));
   EXPECT_THAT(w.currentWritePos(), Eq(0));
@@ -267,11 +289,11 @@ TEST(
 template<template<typename...> class TAdapter>
 struct InBufferConfig
 {
-  using Data = std::vector<char>;
+  using Data = eastl::vector<char>;
   using Adapter = TAdapter<Data>;
 
   Data data{};
-  Adapter createReader(const std::vector<char>& buffer)
+  Adapter createReader(const eastl::vector<char>& buffer)
   {
     data = buffer;
     return Adapter{ data.begin(), data.size() };
@@ -285,10 +307,10 @@ struct InStreamConfig
   using Adapter = TAdapter;
 
   Data data{};
-  Adapter createReader(const std::vector<char>& buffer)
+  Adapter createReader(const eastl::vector<char>& buffer)
   {
-    std::string str(buffer.begin(), buffer.end());
-    data = std::stringstream{ str };
+    eastl::string str(buffer.begin(), buffer.end());
+    data = std::stringstream{ str.c_str() };
     return Adapter{ data };
   }
 };
@@ -330,11 +352,11 @@ TYPED_TEST(InputAll, CanBeMoveConstructedAndMoveAssigned)
   r.template readBytes<1>(res);
   EXPECT_THAT(res, Eq(1));
   // move construct
-  auto r1 = std::move(r);
+  auto r1 = eastl::move(r);
   r1.template readBytes<1>(res);
   EXPECT_THAT(res, Eq(2));
   // move assign
-  r = std::move(r1);
+  r = eastl::move(r1);
   r.template readBytes<1>(res);
   EXPECT_THAT(res, Eq(3));
 }
@@ -442,7 +464,7 @@ TYPED_TEST(InputAll, WhenReaderHasErrorsAllThenReadsReturnZero)
 template<template<typename...> class TAdapter>
 struct OutBufferConfig
 {
-  using Data = std::vector<char>;
+  using Data = eastl::vector<char>;
   using Adapter = TAdapter<Data>;
 
   Data data{};
@@ -487,11 +509,11 @@ TYPED_TEST(OutputAll, CanBeMoveConstructedAndMoveAssigned)
   uint8_t data{ 1 };
   w.template writeBytes<1>(data);
   // move construct
-  auto w1 = std::move(w);
+  auto w1 = eastl::move(w);
   data = 2;
   w1.template writeBytes<1>(data);
   // move assignment
-  w = std::move(w1);
+  w = eastl::move(w1);
   data = 3;
   w.template writeBytes<1>(data);
   w.flush();
@@ -524,7 +546,7 @@ public:
 };
 
 using BufferedAdapterInternalBufferTypes =
-  ::testing::Types<std::vector<char>, std::array<char, 128>, std::string>;
+  ::testing::Types<eastl::vector<char>, eastl::array<char, 128>, eastl::string>;
 
 TYPED_TEST_SUITE(OutputStreamBuffered, BufferedAdapterInternalBufferTypes, );
 
@@ -556,7 +578,7 @@ TYPED_TEST(OutputStreamBuffered,
 {
 
   // create writer with half the internal buffer size
-  // for std::vector it should overflow, and for std::array it should have no
+  // for eastl::vector it should overflow, and for eastl::array it should have no
   // effect
   typename TestFixture::Adapter w{ this->stream,
                                    TestFixture::InternalBufferSize / 2 };
@@ -572,7 +594,7 @@ TYPED_TEST(OutputStreamBuffered,
 struct TestData
 {
   uint32_t b4;
-  std::vector<uint16_t> vb2;
+  eastl::vector<uint16_t> vb2;
 };
 
 template<typename S>

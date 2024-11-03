@@ -26,6 +26,28 @@
 #include "serialization_test_utils.h"
 #include <gmock/gmock.h>
 
+void* __cdecl operator new[](size_t size, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
+void* __cdecl operator new[](size_t size, size_t alignement, size_t offset, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)alignement;
+	(void)offset;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
 using testing::ContainerEq;
 using testing::Eq;
 using testing::StrEq;
@@ -37,7 +59,7 @@ struct X
     : x{ v }
   {
   }
-  std::string s{};
+  eastl::string s{};
   int x{};
   bool operator==(const X& r) const { return r.x == x && r.s == s; }
 };
@@ -46,9 +68,9 @@ struct Y
 {
   int y{};
   int carr[3]{};
-  std::array<int, 3> arr{};
-  std::vector<X> vx{};
-  std::string s{};
+  eastl::array<int, 3> arr{};
+  eastl::vector<X> vx{};
+  eastl::string s{};
 };
 struct Z
 {
@@ -86,7 +108,7 @@ serialize(S& s, Y& o)
 
 TEST(SerializeObject, GeneralConceptTest)
 {
-  // std::string buf;
+  // eastl::string buf;
   SerializationContext ctx;
   Y y{};
   y.y = 3423;

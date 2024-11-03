@@ -20,18 +20,18 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef BITSERY_BRIEF_SYNTAX_TYPE_STD_VARIANT_H
-#define BITSERY_BRIEF_SYNTAX_TYPE_STD_VARIANT_H
+#ifndef BITSERY_BRIEF_SYNTAX_TYPE_EASTL_VARIANT_H
+#define BITSERY_BRIEF_SYNTAX_TYPE_EASTL_VARIANT_H
 
-#include "../ext/std_variant.h"
+#include "../ext/eastl_variant.h"
 
 namespace bitsery {
 template<typename S, typename... Ts>
 void
-serialize(S& s, std::variant<Ts...>& obj)
+serialize(S& s, eastl::variant<Ts...>& obj)
 {
-  s.ext(obj, ext::StdVariant{});
+  s.ext(obj, ext::EastlVariant{});
 }
 }
 
-#endif // BITSERY_BRIEF_SYNTAX_TYPE_STD_VARIANT_H
+#endif // BITSERY_BRIEF_SYNTAX_TYPE_EASTL_VARIANT_H

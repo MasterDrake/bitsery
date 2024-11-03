@@ -20,31 +20,31 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef BITSERY_EXT_STD_OPTIONAL_H
-#define BITSERY_EXT_STD_OPTIONAL_H
+#ifndef BITSERY_EXT_EASTL_OPTIONAL_H
+#define BITSERY_EXT_EASTL_OPTIONAL_H
 
 #include "../details/serialization_common.h"
 #include "../traits/core/traits.h"
-#include <optional>
+#include <EASTL/optional.h>
 
 namespace bitsery {
 namespace ext {
 
-class StdOptional
+class EastlOptional
 {
 public:
   /**
-   * Works with std::optional types
+   * Works with eastl::optional types
    * @param alignBeforeData only makes sense when bit-packing enabled, by
    * default aligns after writing/reading bool state of optional
    */
-  explicit StdOptional(bool alignBeforeData = true)
+  explicit EastlOptional(bool alignBeforeData = true)
     : _alignBeforeData{ alignBeforeData }
   {
   }
 
   template<typename Ser, typename T, typename Fnc>
-  void serialize(Ser& ser, const std::optional<T>& obj, Fnc&& fnc) const
+  void serialize(Ser& ser, const eastl::optional<T>& obj, Fnc&& fnc) const
   {
     ser.boolValue(static_cast<bool>(obj));
     if (_alignBeforeData)
@@ -54,25 +54,25 @@ public:
   }
 
   template<typename Des, typename T, typename Fnc>
-  void deserialize(Des& des, std::optional<T>& obj, Fnc&& fnc) const
+  void deserialize(Des& des, eastl::optional<T>& obj, Fnc&& fnc) const
   {
     bool exists{};
     des.boolValue(exists);
     if (_alignBeforeData)
       des.adapter().align();
     if (exists) {
-      deserialize_impl(des, obj, fnc, std::is_trivial<T>{});
+      deserialize_impl(des, obj, fnc, eastl::is_trivial<T>{});
     } else {
-      obj = std::nullopt;
+      obj = eastl::nullopt;
     }
   }
 
 private:
   template<typename Des, typename T, typename Fnc>
   void deserialize_impl(Des& des,
-                        std::optional<T>& obj,
+                        eastl::optional<T>& obj,
                         Fnc&& fnc,
-                        std::true_type) const
+                        eastl::true_type) const
   {
     obj = ::bitsery::Access::create<T>();
     fnc(des, *obj);
@@ -80,9 +80,9 @@ private:
 
   template<typename Des, typename T, typename Fnc>
   void deserialize_impl(Des& des,
-                        std::optional<T>& obj,
+                        eastl::optional<T>& obj,
                         Fnc&& fnc,
-                        std::false_type) const
+                        eastl::false_type) const
   {
     if (!obj) {
       obj = ::bitsery::Access::create<T>();
@@ -95,7 +95,7 @@ private:
 
 namespace traits {
 template<typename T>
-struct ExtensionTraits<ext::StdOptional, std::optional<T>>
+struct ExtensionTraits<ext::EastlOptional, eastl::optional<T>>
 {
   using TValue = T;
   static constexpr bool SupportValueOverload = true;
@@ -106,4 +106,4 @@ struct ExtensionTraits<ext::StdOptional, std::optional<T>>
 
 }
 
-#endif // BITSERY_EXT_STD_OPTIONAL_H
+#endif // BITSERY_EXT_EASTL_OPTIONAL_H

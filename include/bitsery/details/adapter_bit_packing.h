@@ -26,7 +26,7 @@
 #include "../common.h"
 #include "./adapter_common.h"
 #include "not_defined_type.h"
-#include <limits>
+#include <EASTL/numeric_limits.h>
 
 namespace bitsery {
 
@@ -36,7 +36,7 @@ template<typename TAdapter>
 class InputAdapterBitPackingWrapper
 {
 public:
-  // in order to check if adapter is BP enabled, we use `std::is_same<Adapter,
+  // in order to check if adapter is BP enabled, we use `eastl::is_same<Adapter,
   // typename Adapter::BitPackingEnabled>` so when current implementation is BP
   // enabled, we always specify current class as BitPackingEnabled.
   using BitPackingEnabled = InputAdapterBitPackingWrapper<TAdapter>;
@@ -53,9 +53,9 @@ public:
   template<size_t SIZE, typename T>
   void readBytes(T& v)
   {
-    static_assert(std::is_integral<T>(), "");
+    static_assert(eastl::is_integral<T>(), "");
     static_assert(sizeof(T) == SIZE, "");
-    using UT = typename std::make_unsigned<T>::type;
+    using UT = typename eastl::make_unsigned<T>::type;
     if (!m_scratchBits)
       this->_wrapped.template readBytes<SIZE, T>(v);
     else
@@ -65,13 +65,13 @@ public:
   template<size_t SIZE, typename T>
   void readBuffer(T* buf, size_t count)
   {
-    static_assert(std::is_integral<T>(), "");
+    static_assert(eastl::is_integral<T>(), "");
     static_assert(sizeof(T) == SIZE, "");
 
     if (!m_scratchBits) {
       this->_wrapped.template readBuffer<SIZE, T>(buf, count);
     } else {
-      using UT = typename std::make_unsigned<T>::type;
+      using UT = typename eastl::make_unsigned<T>::type;
       // todo improve implementation
       const auto end = buf + count;
       for (auto it = buf; it != end; ++it)
@@ -82,7 +82,7 @@ public:
   template<typename T>
   void readBits(T& v, size_t bitsCount)
   {
-    static_assert(std::is_integral<T>() && std::is_unsigned<T>(), "");
+    static_assert(eastl::is_integral<T>() && eastl::is_unsigned<T>(), "");
     readBitsInternal(v, bitsCount);
   }
 
@@ -92,7 +92,7 @@ public:
       ScratchType tmp{};
       readBitsInternal(tmp, m_scratchBits);
       handleAlignErrors(
-        tmp, std::integral_constant<bool, TConfig::CheckDataErrors>{});
+        tmp, eastl::integral_constant<bool, TConfig::CheckDataErrors>{});
     }
   }
 
@@ -123,7 +123,7 @@ public:
 private:
   TAdapter& _wrapped;
   using UnsignedValue =
-    typename std::make_unsigned<typename TAdapter::TValue>::type;
+    typename eastl::make_unsigned<typename TAdapter::TValue>::type;
   using ScratchType = typename details::ScratchType<UnsignedValue>::type;
 
   ScratchType m_scratch{};
@@ -136,7 +136,7 @@ private:
     using TFast = typename FastType<T>::type;
     TFast res{};
     while (bitsLeft > 0) {
-      auto bits = (std::min)(bitsLeft, details::BitsSize<UnsignedValue>::value);
+      auto bits = (eastl::min)(bitsLeft, details::BitsSize<UnsignedValue>::value);
       if (m_scratchBits < bits) {
         UnsignedValue tmp;
         this->_wrapped.template readBytes<sizeof(UnsignedValue), UnsignedValue>(
@@ -155,13 +155,13 @@ private:
     v = static_cast<T>(res);
   }
 
-  void handleAlignErrors(ScratchType value, std::true_type)
+  void handleAlignErrors(ScratchType value, eastl::true_type)
   {
     if (value)
       error(ReaderError::InvalidData);
   }
 
-  void handleAlignErrors(ScratchType, std::false_type) {}
+  void handleAlignErrors(ScratchType, eastl::false_type) {}
 };
 
 template<typename TAdapter>
@@ -238,7 +238,7 @@ template<typename TAdapter>
 class OutputAdapterBitPackingWrapper
 {
 public:
-  // in order to check if adapter is BP enabled, we use `std::is_same<Adapter,
+  // in order to check if adapter is BP enabled, we use `eastl::is_same<Adapter,
   // typename Adapter::BitPackingEnabled>` so when current implementation is BP
   // enabled, we always specify current class as BitPackingEnabled.
   using BitPackingEnabled = OutputAdapterBitPackingWrapper<TAdapter>;
@@ -255,13 +255,13 @@ public:
   template<size_t SIZE, typename T>
   void writeBytes(const T& v)
   {
-    static_assert(std::is_integral<T>(), "");
+    static_assert(eastl::is_integral<T>(), "");
     static_assert(sizeof(T) == SIZE, "");
 
     if (!_scratchBits) {
       this->_wrapped.template writeBytes<SIZE, T>(v);
     } else {
-      using UT = typename std::make_unsigned<T>::type;
+      using UT = typename eastl::make_unsigned<T>::type;
       writeBitsInternal(reinterpret_cast<const UT&>(v),
                         details::BitsSize<T>::value);
     }
@@ -270,12 +270,12 @@ public:
   template<size_t SIZE, typename T>
   void writeBuffer(const T* buf, size_t count)
   {
-    static_assert(std::is_integral<T>(), "");
+    static_assert(eastl::is_integral<T>(), "");
     static_assert(sizeof(T) == SIZE, "");
     if (!_scratchBits) {
       this->_wrapped.template writeBuffer<SIZE, T>(buf, count);
     } else {
-      using UT = typename std::make_unsigned<T>::type;
+      using UT = typename eastl::make_unsigned<T>::type;
       // todo improve implementation
       const auto end = buf + count;
       for (auto it = buf; it != end; ++it)
@@ -287,7 +287,7 @@ public:
   template<typename T>
   void writeBits(const T& v, size_t bitsCount)
   {
-    static_assert(std::is_integral<T>() && std::is_unsigned<T>(), "");
+    static_assert(eastl::is_integral<T>() && eastl::is_unsigned<T>(), "");
     assert(0 < bitsCount && bitsCount <= details::BitsSize<T>::value);
     assert(v <= (bitsCount < 64 ? (1ULL << bitsCount) - 1
                                 : (1ULL << (bitsCount - 1)) +
@@ -325,7 +325,7 @@ private:
   TAdapter& _wrapped;
 
   using UnsignedType =
-    typename std::make_unsigned<typename TAdapter::TValue>::type;
+    typename eastl::make_unsigned<typename TAdapter::TValue>::type;
   using ScratchType = typename details::ScratchType<UnsignedType>::type;
   static_assert(details::IsDefined<ScratchType>::value,
                 "Underlying adapter value type is not supported");
@@ -337,7 +337,7 @@ private:
     T value = v;
     size_t bitsLeft = size;
     while (bitsLeft > 0) {
-      auto bits = (std::min)(bitsLeft, valueSize);
+      auto bits = (eastl::min)(bitsLeft, valueSize);
       _scratch |= static_cast<ScratchType>(value) << _scratchBits;
       _scratchBits += bits;
       if (_scratchBits >= valueSize) {
@@ -369,7 +369,7 @@ private:
     }
   }
 
-  const UnsignedType _MASK = (std::numeric_limits<UnsignedType>::max)();
+  const UnsignedType _MASK = (eastl::numeric_limits<UnsignedType>::max)();
   ScratchType _scratch{};
   size_t _scratchBits{};
 };

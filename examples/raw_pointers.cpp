@@ -10,6 +10,28 @@
 // was not serialized.
 #include <bitsery/ext/pointer.h>
 
+void* __cdecl operator new[](size_t size, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
+void* __cdecl operator new[](size_t size, size_t alignement, size_t offset, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)alignement;
+	(void)offset;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
 using bitsery::ext::PointerObserver;
 using bitsery::ext::PointerOwner;
 using bitsery::ext::PointerType;
@@ -23,7 +45,7 @@ enum class MyEnum : uint16_t
 };
 struct MyStruct
 {
-  MyStruct(uint32_t i_, MyEnum e_, std::vector<float> fs_)
+  MyStruct(uint32_t i_, MyEnum e_, eastl::vector<float> fs_)
     : i{ i_ }
     , e{ e_ }
     , fs{ fs_ }
@@ -35,7 +57,7 @@ struct MyStruct
   }
   uint32_t i;
   MyEnum e;
-  std::vector<float> fs;
+  eastl::vector<float> fs;
 };
 
 template<typename S>
@@ -54,9 +76,9 @@ struct Test1Data
   MyStruct o1;
   int32_t i1;
   // these container elements can be referenced by pointers
-  std::vector<MyStruct> vdata;
+  eastl::vector<MyStruct> vdata;
   // container that holds non owning pointers (observers),
-  std::vector<MyStruct*> vptr;
+  eastl::vector<MyStruct*> vptr;
   // treat it as is observer
   MyStruct* po1;
   // we treat this as owner (responsible for allocation/deallocation
@@ -94,14 +116,14 @@ private:
 };
 
 // some helper types
-using Buffer = std::vector<uint8_t>;
+using Buffer = eastl::vector<uint8_t>;
 using Writer = bitsery::OutputBufferAdapter<Buffer>;
 using Reader = bitsery::InputBufferAdapter<Buffer>;
 
 // we will need PointerLinkingContext to work with pointers
 // if we would require additional context for our own custom flow, we can define
 // it as tuple like this:
-//   std::tuple<MyContext,ext::PointerLinkingContext>
+//   eastl::tuple<MyContext,ext::PointerLinkingContext>
 // and other code will work as expected as long as it cast to proper type.
 // see context_usage.cpp for usage example
 
@@ -110,18 +132,18 @@ main()
 {
   // set some random data
   Test1Data data{};
-  data.vdata.emplace_back(8941, MyEnum::V1, std::vector<float>{ 4.4f });
-  data.vdata.emplace_back(15478, MyEnum::V2, std::vector<float>{ 15.0f });
-  data.vdata.emplace_back(59, MyEnum::V3, std::vector<float>{ -8.5f, 0.045f });
+  data.vdata.emplace_back(8941, MyEnum::V1, eastl::vector<float>{ 4.4f });
+  data.vdata.emplace_back(15478, MyEnum::V2, eastl::vector<float>{ 15.0f });
+  data.vdata.emplace_back(59, MyEnum::V3, eastl::vector<float>{ -8.5f, 0.045f });
   // container of non owning pointers (observers)
   data.vptr.emplace_back(nullptr);
-  data.vptr.emplace_back(std::addressof(data.vdata[0]));
-  data.vptr.emplace_back(std::addressof(data.vdata[2]));
+  data.vptr.emplace_back(eastl::addressof(data.vdata[0]));
+  data.vptr.emplace_back(eastl::addressof(data.vdata[2]));
   // regular fields
   data.o1 = MyStruct{ 4, MyEnum::V2, { 57.078f } };
   data.i1 = 9455;
   // observer
-  data.po1 = std::addressof(data.vdata[1]);
+  data.po1 = eastl::addressof(data.vdata[1]);
   // owning pointer
   data.pi1 = new int32_t{};
 
@@ -156,9 +178,9 @@ main()
   assert(res.pi1 != data.pi1);
   // observers, points to other data
   assert(res.vptr[0] == nullptr);
-  assert(res.vptr[1] == std::addressof(res.vdata[0]));
-  assert(res.vptr[2] == std::addressof(res.vdata[2]));
-  assert(res.po1 == std::addressof(res.vdata[1]));
+  assert(res.vptr[1] == eastl::addressof(res.vdata[0]));
+  assert(res.vptr[2] == eastl::addressof(res.vdata[2]));
+  assert(res.po1 == eastl::addressof(res.vdata[1]));
 
   // delete raw owning pointers
   delete data.pi1;

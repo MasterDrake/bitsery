@@ -26,7 +26,7 @@
 #include "../bitsery.h"
 #include "../details/adapter_bit_packing.h"
 #include "../traits/core/traits.h"
-#include <algorithm>
+#include <EASTL/algorithm.h>
 #include <cassert>
 #include <cstring>
 
@@ -43,14 +43,14 @@ public:
     details::InputAdapterBitPackingWrapper<InputBufferAdapter<Buffer, Config>>;
   using TConfig = Config;
   using TIterator = typename traits::BufferAdapterTraits<
-    typename std::remove_const<Buffer>::type>::TConstIterator;
+    typename eastl::remove_const<Buffer>::type>::TConstIterator;
   using TValue = typename traits::BufferAdapterTraits<
-    typename std::remove_const<Buffer>::type>::TValue;
+    typename eastl::remove_const<Buffer>::type>::TValue;
   static_assert(
     details::IsDefined<TValue>::value,
     "Please define BufferAdapterTraits or include from <bitsery/traits/...>");
   static_assert(traits::ContainerTraits<
-                  typename std::remove_const<Buffer>::type>::isContiguous,
+                  typename eastl::remove_const<Buffer>::type>::isContiguous,
                 "BufferAdapter only works with contiguous containers");
   static_assert(sizeof(TValue) == 1,
                 "BufferAdapter underlying type must be 1byte.");
@@ -63,7 +63,7 @@ public:
 
   InputBufferAdapter(TIterator beginIt, TIterator endIt)
     : InputBufferAdapter(beginIt,
-                         static_cast<size_t>(std::distance(beginIt, endIt)))
+                         static_cast<size_t>(eastl::distance(beginIt, endIt)))
   {
   }
 
@@ -76,13 +76,13 @@ public:
   void currentReadPos(size_t pos)
   {
     currentReadPosChecked(
-      pos, std::integral_constant<bool, Config::CheckAdapterErrors>{});
+      pos, eastl::integral_constant<bool, Config::CheckAdapterErrors>{});
   }
 
   size_t currentReadPos() const
   {
     return currentReadPosChecked(
-      std::integral_constant<bool, Config::CheckAdapterErrors>{});
+      eastl::integral_constant<bool, Config::CheckAdapterErrors>{});
   }
 
   void currentReadEndPos(size_t pos)
@@ -128,34 +128,34 @@ public:
   bool isCompletedSuccessfully() const { return _currOffset == _bufferSize; }
 
 private:
-  using diff_t = typename std::iterator_traits<TIterator>::difference_type;
+  using diff_t = typename eastl::iterator_traits<TIterator>::difference_type;
 
   template<size_t SIZE>
   void readInternalValue(TValue* data)
   {
     readInternalImpl(
-      data, SIZE, std::integral_constant<bool, Config::CheckAdapterErrors>{});
+      data, SIZE, eastl::integral_constant<bool, Config::CheckAdapterErrors>{});
   }
 
   void readInternalBuffer(TValue* data, size_t size)
   {
     readInternalImpl(
-      data, size, std::integral_constant<bool, Config::CheckAdapterErrors>{});
+      data, size, eastl::integral_constant<bool, Config::CheckAdapterErrors>{});
   }
 
-  void readInternalImpl(TValue* data, size_t size, std::false_type)
+  void readInternalImpl(TValue* data, size_t size, eastl::false_type)
   {
     const size_t newOffset = _currOffset + size;
     assert(newOffset <= _endReadOffset);
-    std::copy_n(_beginIt + static_cast<diff_t>(_currOffset), size, data);
+    eastl::copy_n(_beginIt + static_cast<diff_t>(_currOffset), size, data);
     _currOffset = newOffset;
   }
 
-  void readInternalImpl(TValue* data, size_t size, std::true_type)
+  void readInternalImpl(TValue* data, size_t size, eastl::true_type)
   {
     const size_t newOffset = _currOffset + size;
     if (newOffset <= _endReadOffset) {
-      std::copy_n(_beginIt + static_cast<diff_t>(_currOffset), size, data);
+      eastl::copy_n(_beginIt + static_cast<diff_t>(_currOffset), size, data);
       _currOffset = newOffset;
     } else {
       // set everything to zeros
@@ -165,7 +165,7 @@ private:
     }
   }
 
-  void currentReadPosChecked(size_t pos, std::true_type)
+  void currentReadPosChecked(size_t pos, eastl::true_type)
   {
     if (_bufferSize >= pos && error() == ReaderError::NoError) {
       _currOffset = pos;
@@ -174,14 +174,14 @@ private:
     }
   }
 
-  void currentReadPosChecked(size_t pos, std::false_type) { _currOffset = pos; }
+  void currentReadPosChecked(size_t pos, eastl::false_type) { _currOffset = pos; }
 
-  size_t currentReadPosChecked(std::true_type) const
+  size_t currentReadPosChecked(eastl::true_type) const
   {
     return error() == ReaderError::NoError ? _currOffset : 0;
   }
 
-  size_t currentReadPosChecked(std::false_type) const { return _currOffset; }
+  size_t currentReadPosChecked(eastl::false_type) const { return _currOffset; }
 
   TIterator _beginIt;
   size_t _currOffset;
@@ -212,8 +212,8 @@ public:
                 "BufferAdapter underlying type must be 1byte.");
 
   OutputBufferAdapter(Buffer& buffer)
-    : _buffer{ std::addressof(buffer) }
-    , _beginIt{ std::begin(buffer) }
+    : _buffer{ eastl::addressof(buffer) }
+    , _beginIt{ eastl::begin(buffer) }
     , _bufferSize{ traits::ContainerTraits<Buffer>::size(buffer) }
   {
   }
@@ -247,8 +247,8 @@ public:
 
 private:
   using TResizable =
-    std::integral_constant<bool, traits::ContainerTraits<Buffer>::isResizable>;
-  using diff_t = typename std::iterator_traits<TIterator>::difference_type;
+    eastl::integral_constant<bool, traits::ContainerTraits<Buffer>::isResizable>;
+  using diff_t = typename eastl::iterator_traits<TIterator>::difference_type;
 
   template<size_t SIZE>
   void writeInternalValue(const TValue* data)
@@ -267,7 +267,7 @@ private:
   size_t _bufferSize{ 0 };
   size_t _biggestCurrentPos{ 0 };
 
-  void maybeResize(size_t newOffset, std::true_type)
+  void maybeResize(size_t newOffset, eastl::true_type)
   {
     if (newOffset > _bufferSize)
       BITSERY_UNLIKELY
@@ -276,7 +276,7 @@ private:
       }
   }
 
-  void maybeResize(size_t newOffset, std::false_type)
+  void maybeResize(size_t newOffset, eastl::false_type)
   {
     static_cast<void>(newOffset);
     assert(newOffset <= _bufferSize);
@@ -286,7 +286,7 @@ private:
   {
     const size_t newOffset = _currOffset + size;
     maybeResize(newOffset, TResizable{});
-    std::copy_n(data, size, _beginIt + static_cast<diff_t>(_currOffset));
+    eastl::copy_n(data, size, _beginIt + static_cast<diff_t>(_currOffset));
     _currOffset = newOffset;
   }
 
@@ -294,7 +294,7 @@ private:
   {
     traits::BufferAdapterTraits<Buffer>::increaseBufferSize(
       *_buffer, _currOffset, newOffset);
-    _beginIt = std::begin(*_buffer);
+    _beginIt = eastl::begin(*_buffer);
     _bufferSize = traits::ContainerTraits<Buffer>::size(*_buffer);
   }
 };

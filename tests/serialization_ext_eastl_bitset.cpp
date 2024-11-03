@@ -20,11 +20,33 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include <bitsery/ext/std_bitset.h>
+#include <bitsery/ext/eastl_bitset.h>
 #include <bitsery/ext/value_range.h>
 
 #include "serialization_test_utils.h"
 #include <gmock/gmock.h>
+
+void* __cdecl operator new[](size_t size, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
+void* __cdecl operator new[](size_t size, size_t alignement, size_t offset, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)alignement;
+	(void)offset;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
 
 using StdBitset = bitsery::ext::StdBitset;
 using ValueRange = bitsery::ext::ValueRange<int>;
@@ -35,13 +57,13 @@ TEST(SerializeExtensionStdBitset, BitsetSmallerThanULongLong)
 {
   SerializationContext ctx;
 
-  std::bitset<31> data;
+  eastl::bitset<31> data;
   data[2] = true;
   data[8] = true;
   data[15] = true;
   data[25] = true;
   data[30] = true;
-  std::bitset<31> res;
+  eastl::bitset<31> res;
 
   ctx.createSerializer().ext(data, StdBitset{});
   ctx.createDeserializer().ext(res, StdBitset{});
@@ -52,9 +74,9 @@ TEST(SerializeExtensionStdBitset, BitsetSmallerThanULongLong2)
 {
   SerializationContext ctx;
 
-  std::bitset<9> data;
+  eastl::bitset<9> data;
   data.set();
-  std::bitset<9> res;
+  eastl::bitset<9> res;
 
   ctx.createSerializer().ext(data, StdBitset{});
   ctx.createDeserializer().ext(res, StdBitset{});
@@ -65,13 +87,13 @@ TEST(SerializeExtensionStdBitset, BitsetLargerThanULongLong)
 {
   SerializationContext ctx;
 
-  std::bitset<200> data;
+  eastl::bitset<200> data;
   data[1] = true;
   data[31] = true;
   data[63] = true;
   data[100] = true;
   data[191] = true;
-  std::bitset<200> res;
+  eastl::bitset<200> res;
 
   ctx.createSerializer().ext(data, StdBitset{});
   ctx.createDeserializer().ext(res, StdBitset{});
@@ -82,11 +104,11 @@ TEST(SerializeExtensionStdBitset, BitsetSmallerThanULongLongBitPackingEnabled)
 {
   SerializationContext ctx;
 
-  std::bitset<12> data;
+  eastl::bitset<12> data;
   int other_data = 1001;
   data[2] = true;
   data[9] = true;
-  std::bitset<12> res{};
+  eastl::bitset<12> res{};
   int other_res{};
 
   ctx.createSerializer().enableBitPacking(
@@ -108,12 +130,12 @@ TEST(SerializeExtensionStdBitset, BitsetLargerThanULongLongBitPackingEnabled)
 {
   SerializationContext ctx;
 
-  std::bitset<204> data;
+  eastl::bitset<204> data;
   int other_data = 1001;
   data[1] = true;
   data[100] = true;
   data[191] = true;
-  std::bitset<204> res{};
+  eastl::bitset<204> res{};
   int other_res{};
 
   ctx.createSerializer().enableBitPacking(

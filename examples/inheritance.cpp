@@ -20,6 +20,28 @@
 using bitsery::ext::BaseClass;
 using bitsery::ext::VirtualBaseClass;
 
+void* __cdecl operator new[](size_t size, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
+void* __cdecl operator new[](size_t size, size_t alignement, size_t offset, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)alignement;
+	(void)offset;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
 struct Base
 {
   uint8_t x{};
@@ -106,7 +128,7 @@ struct SelectSerializeFnc<MultipleInheritance> : UseNonMemberFnc
 }
 
 // some helper types
-using Buffer = std::vector<uint8_t>;
+using Buffer = eastl::vector<uint8_t>;
 using Writer = bitsery::OutputBufferAdapter<Buffer>;
 using Reader = bitsery::InputBufferAdapter<Buffer>;
 

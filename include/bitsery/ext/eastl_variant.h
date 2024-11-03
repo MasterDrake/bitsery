@@ -20,54 +20,54 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef BITSERY_EXT_STD_VARIANT_H
-#define BITSERY_EXT_STD_VARIANT_H
+#ifndef BITSERY_EXT_EASTL_VARIANT_H
+#define BITSERY_EXT_EASTL_VARIANT_H
 
 #include "../traits/core/traits.h"
 #include "utils/composite_type_overloads.h"
-#include <variant>
+#include <ESATL/variant.h>
 
 namespace bitsery {
 namespace ext {
 
 template<typename... Overloads>
-class StdVariant
-  : public details::CompositeTypeOverloadsUtils<std::variant, Overloads...>
+class EastlVariant
+  : public details::CompositeTypeOverloadsUtils<eastl::variant, Overloads...>
 {
 public:
   template<typename Ser, typename Fnc, typename... Ts>
-  void serialize(Ser& ser, const std::variant<Ts...>& obj, Fnc&&) const
+  void serialize(Ser& ser, const eastl::variant<Ts...>& obj, Fnc&&) const
   {
     auto index = obj.index();
-    assert(index != std::variant_npos);
+    assert(index != eastl::variant_npos);
     details::writeSize(ser.adapter(), index);
     this->execIndex(index,
-                    const_cast<std::variant<Ts...>&>(obj),
+                    const_cast<eastl::variant<Ts...>&>(obj),
                     [this, &ser](auto& data, auto index) {
                       constexpr size_t Index = decltype(index)::value;
-                      this->serializeType(ser, std::get<Index>(data));
+                      this->serializeType(ser, eastl::get<Index>(data));
                     });
   }
 
   template<typename Des, typename Fnc, typename... Ts>
-  void deserialize(Des& des, std::variant<Ts...>& obj, Fnc&&) const
+  void deserialize(Des& des, eastl::variant<Ts...>& obj, Fnc&&) const
   {
     size_t index{};
     details::readSize(
       des.adapter(),
       index,
       sizeof...(Ts),
-      std::integral_constant<bool, Des::TConfig::CheckDataErrors>{});
+      eastl::integral_constant<bool, Des::TConfig::CheckDataErrors>{});
     this->execIndex(index, obj, [this, &des](auto& data, auto index) {
       constexpr size_t Index = decltype(index)::value;
       using TElem =
-        typename std::variant_alternative<Index, std::variant<Ts...>>::type;
+        typename eastl::variant_alternative<Index, eastl::variant<Ts...>>::type;
 
       // Reinitializing nontrivial types may be expensive especially when they
       // reference heap data, so if `data` is already holding the requested
       // variant then we'll deserialize into the existing object
-      if constexpr (!std::is_trivial_v<TElem>) {
-        if (auto item = std::get_if<Index>(&data)) {
+      if constexpr (!eastl::is_trivial_v<TElem>) {
+        if (auto item = eastl::get_if<Index>(&data)) {
           this->serializeType(des, *item);
           return;
         }
@@ -76,31 +76,31 @@ public:
       TElem item = ::bitsery::Access::create<TElem>();
       this->serializeType(des, item);
       data =
-        std::variant<Ts...>(std::in_place_index_t<Index>{}, std::move(item));
+        eastl::variant<Ts...>(eastl::in_place_index_t<Index>{}, eastl::move(item));
     });
   }
 };
 
 // deduction guide
 template<typename... Overloads>
-StdVariant(Overloads...) -> StdVariant<Overloads...>;
+EastlVariant(Overloads...) -> EastlVariant<Overloads...>;
 }
 
 // defines empty fuction, that handles monostate
 template<typename S>
 void
-serialize(S&, std::monostate&)
+serialize(S&, eastl::monostate&)
 {
 }
 
 namespace traits {
 
 template<typename Variant, typename... Overloads>
-struct ExtensionTraits<ext::StdVariant<Overloads...>, Variant>
+struct ExtensionTraits<ext::EastlVariant<Overloads...>, Variant>
 {
   static_assert(
-    bitsery::details::IsSpecializationOf<Variant, std::variant>::value,
-    "StdVariant only works with std::variant");
+    bitsery::details::IsSpecializationOf<Variant, eastl::variant>::value,
+    "EastlVariant only works with eastl::variant");
   using TValue = void;
   static constexpr bool SupportValueOverload = false;
   static constexpr bool SupportObjectOverload = true;
@@ -111,4 +111,4 @@ struct ExtensionTraits<ext::StdVariant<Overloads...>, Variant>
 
 }
 
-#endif // BITSERY_EXT_STD_VARIANT_H
+#endif // BITSERY_EXT_EASTL_VARIANT_H

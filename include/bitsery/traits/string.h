@@ -20,36 +20,35 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef BITSERY_TRAITS_STD_STRING_H
-#define BITSERY_TRAITS_STD_STRING_H
+#ifndef BITSERY_TRAITS_EASTL_STRING_H
+#define BITSERY_TRAITS_EASTL_STRING_H
 
-#include "core/std_defaults.h"
-#include <string>
+#include "core/eastl_defaults.h"
+#include <EASTL/string.h>
 
 namespace bitsery {
 
 namespace traits {
 
 // specialization for string, because string is already included for
-// std::char_traits
+// eastl::char_traits
 
-template<typename CharT, typename Traits, typename Allocator>
-struct ContainerTraits<std::basic_string<CharT, Traits, Allocator>>
-  : public StdContainer<std::basic_string<CharT, Traits, Allocator>, true, true>
+template<typename CharT, typename Allocator>
+struct ContainerTraits<eastl::basic_string<CharT, Allocator>>
+  : public EastlContainer<eastl::basic_string<CharT, Allocator>, true, true>
 {
 };
 
-template<typename CharT, typename Traits, typename Allocator>
-struct TextTraits<std::basic_string<CharT, Traits, Allocator>>
+template<typename CharT, typename Allocator>
+struct TextTraits<eastl::basic_string<CharT, Allocator>>
 {
-  using TValue = typename ContainerTraits<
-    std::basic_string<CharT, Traits, Allocator>>::TValue;
+  using TValue = typename ContainerTraits<eastl::basic_string<CharT, Allocator>>::TValue;
   // string is automatically null-terminated
   static constexpr bool addNUL = false;
 
   // is is not 100% accurate, but for performance reasons assume that string
   // stores text, not binary data
-  static size_t length(const std::basic_string<CharT, Traits, Allocator>& str)
+  static size_t length(const eastl::basic_string<CharT, Allocator>& str)
   {
     return str.size();
   }
@@ -64,14 +63,14 @@ struct TextTraits<T[N]>
 
   static size_t length(const T (&container)[N])
   {
-    return std::char_traits<T>::length(container);
+    return eastl::char_traits<T>::length(container);
   }
 };
 
-template<typename CharT, typename Traits, typename Allocator>
-struct BufferAdapterTraits<std::basic_string<CharT, Traits, Allocator>>
-  : public StdContainerForBufferAdapter<
-      std::basic_string<CharT, Traits, Allocator>>
+template<typename CharT, typename Allocator>
+struct BufferAdapterTraits<eastl::basic_string<CharT, Allocator>>
+  : public EastlContainerForBufferAdapter<
+      eastl::basic_string<CharT, Allocator>>
 {
 };
 
@@ -79,4 +78,4 @@ struct BufferAdapterTraits<std::basic_string<CharT, Traits, Allocator>>
 
 }
 
-#endif // BITSERY_TRAITS_VECTOR_H
+#endif // BITSERY_TRAITS_EASTL_STRING_H

@@ -24,9 +24,9 @@
 #define BITSERY_EXT_POLYMORPHISM_UTILS_H
 
 #include "memory_resource.h"
-#include <memory>
-#include <unordered_map>
-#include <vector>
+#include <EASTL/shared_ptr.h>
+#include <EASTL/unordered_map.h>
+#include <EASTL/vector.h>
 
 namespace bitsery {
 
@@ -142,7 +142,7 @@ private:
            typename TDerived>
   void add()
   {
-    addToMap<TSerializer, TBase, TDerived>(std::is_abstract<TDerived>{});
+    addToMap<TSerializer, TBase, TDerived>(eastl::is_abstract<TDerived>{});
     addChilds<TSerializer, THierarchy, TBase, TDerived>(
       typename THierarchy<TDerived>::Childs{});
   }
@@ -156,7 +156,7 @@ private:
            typename... Tn>
   void addChilds(PolymorphicClassesList<T1, Tn...>)
   {
-    static_assert(std::is_base_of<TDerived, T1>::value,
+    static_assert(eastl::is_base_of<TDerived, T1>::value,
                   "PolymorphicBaseClass<TBase> must derive a list of derived "
                   "classes from TBase.");
     add<TSerializer, THierarchy, TBase, T1>();
@@ -176,27 +176,27 @@ private:
   }
 
   template<typename TSerializer, typename TBase, typename TDerived>
-  void addToMap(std::false_type)
+  void addToMap(eastl::false_type)
   {
     using THandler = PolymorphicHandler<RTTI, TSerializer, TBase, TDerived>;
     BaseToDerivedKey key{ RTTI::template get<TBase>(),
                           RTTI::template get<TDerived>() };
     pointer_utils::StdPolyAlloc<THandler> alloc{ _memResource };
     auto ptr = alloc.allocate(1);
-    std::shared_ptr<THandler> handler(
+    eastl::shared_ptr<THandler> handler(
       new (ptr) THandler{},
       [alloc](THandler* data) mutable {
         data->~THandler();
         alloc.deallocate(data, 1);
       },
       alloc);
-    if (_baseToDerivedMap.emplace(key, std::move(handler)).second) {
+    if (_baseToDerivedMap.emplace(key, eastl::move(handler)).second) {
       auto it = _baseToDerivedArray.find(key.baseHash);
       if (it == _baseToDerivedArray.end()) {
         it = _baseToDerivedArray
-               .emplace(std::piecewise_construct,
-                        std::forward_as_tuple(key.baseHash),
-                        std::forward_as_tuple(
+               .emplace(eastl::piecewise_construct,
+                        eastl::forward_as_tuple(key.baseHash),
+                        eastl::forward_as_tuple(
                           pointer_utils::StdPolyAlloc<size_t>{ _memResource }))
                .first;
       }
@@ -205,7 +205,7 @@ private:
   }
 
   template<typename TSerializer, typename TBase, typename TDerived>
-  void addToMap(std::true_type)
+  void addToMap(eastl::true_type)
   {
     // cannot add abstract class
   }
@@ -213,37 +213,37 @@ private:
   MemResourceBase* _memResource;
   // store shared ptr to polymorphic handler, because it might be copied to
   // "smart pointer" deleter
-  std::unordered_map<BaseToDerivedKey,
-                     std::shared_ptr<PolymorphicHandlerBase>,
+  eastl::unordered_map<BaseToDerivedKey,
+                     eastl::shared_ptr<PolymorphicHandlerBase>,
                      BaseToDerivedKeyHashier,
-                     std::equal_to<BaseToDerivedKey>,
+                     eastl::equal_to<BaseToDerivedKey>,
                      pointer_utils::StdPolyAlloc<
-                       std::pair<const BaseToDerivedKey,
-                                 std::shared_ptr<PolymorphicHandlerBase>>>>
+                       eastl::pair<const BaseToDerivedKey,
+                                 eastl::shared_ptr<PolymorphicHandlerBase>>>>
     _baseToDerivedMap;
   // this will allow convert from platform specific type information, to
   // platform independent base->derived index this only works if all polymorphic
   // relationships (PolymorphicBaseClass<TBase> ->
   // PolymorphicDerivedClasses<TDerived...>) is equal between platforms.
-  std::unordered_map<
+  eastl::unordered_map<
     size_t,
-    std::vector<size_t, pointer_utils::StdPolyAlloc<size_t>>,
-    std::hash<size_t>,
-    std::equal_to<size_t>,
+    eastl::vector<size_t, pointer_utils::StdPolyAlloc<size_t>>,
+    eastl::hash<size_t>,
+    eastl::equal_to<size_t>,
     pointer_utils::StdPolyAlloc<
-      std::pair<const size_t,
-                std::vector<size_t, pointer_utils::StdPolyAlloc<size_t>>>>>
+      eastl::pair<const size_t,
+                eastl::vector<size_t, pointer_utils::StdPolyAlloc<size_t>>>>>
     _baseToDerivedArray;
 
 public:
   explicit PolymorphicContext(MemResourceBase* memResource = nullptr)
     : _memResource{ memResource }
     , _baseToDerivedMap{ pointer_utils::StdPolyAlloc<
-        std::pair<const BaseToDerivedKey,
-                  std::shared_ptr<PolymorphicHandlerBase>>>{ memResource } }
+        eastl::pair<const BaseToDerivedKey,
+                  eastl::shared_ptr<PolymorphicHandlerBase>>>{ memResource } }
     , _baseToDerivedArray{ pointer_utils::StdPolyAlloc<
-        std::pair<const size_t,
-                  std::vector<size_t, pointer_utils::StdPolyAlloc<size_t>>>>{
+        eastl::pair<const size_t,
+                  eastl::vector<size_t, pointer_utils::StdPolyAlloc<size_t>>>>{
         memResource } }
   {
   }
@@ -284,11 +284,11 @@ public:
   template<typename TSerializer, typename TBase, typename TDerived>
   void registerSingleBaseBranch()
   {
-    static_assert(std::is_base_of<TBase, TDerived>::value,
+    static_assert(eastl::is_base_of<TBase, TDerived>::value,
                   "TDerived must be derived from TBase");
-    static_assert(!std::is_abstract<TDerived>::value,
+    static_assert(!eastl::is_abstract<TDerived>::value,
                   "TDerived cannot be abstract");
-    addToMap<TSerializer, TBase, TDerived>(std::false_type{});
+    addToMap<TSerializer, TBase, TDerived>(eastl::false_type{});
   }
 
   template<typename Serializer, typename TBase>
@@ -303,8 +303,8 @@ public:
     // convert derived hash to derived index, to make it work in cross-platform
     // environment
     auto& vec = _baseToDerivedArray.find(key.baseHash)->second;
-    auto derivedIndex = static_cast<size_t>(std::distance(
-      vec.begin(), std::find(vec.begin(), vec.end(), key.derivedHash)));
+    auto derivedIndex = static_cast<size_t>(eastl::distance(
+      vec.begin(), eastl::find(vec.begin(), vec.end(), key.derivedHash)));
     details::writeSize(ser.adapter(), derivedIndex);
 
     // serialize
@@ -321,7 +321,7 @@ public:
                    TDestroyFnc destroyFnc) const
   {
     size_t derivedIndex{};
-    details::readSize(des.adapter(), derivedIndex, 0, std::false_type{});
+    details::readSize(des.adapter(), derivedIndex, 0, eastl::false_type{});
 
     auto baseToDerivedVecIt =
       _baseToDerivedArray.find(RTTI::template get<TBase>());
@@ -349,7 +349,7 @@ public:
   }
 
   template<typename TBase>
-  const std::shared_ptr<PolymorphicHandlerBase>& getPolymorphicHandler(
+  const eastl::shared_ptr<PolymorphicHandlerBase>& getPolymorphicHandler(
     TBase& obj) const
   {
     auto deleteHandlerIt = _baseToDerivedMap.find(BaseToDerivedKey{

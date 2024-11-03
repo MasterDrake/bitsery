@@ -25,7 +25,7 @@
 
 #include "../traits/core/traits.h"
 #include "adapter_common.h"
-#include <tuple>
+#include <EASTL/tuple.h>
 
 namespace bitsery {
 
@@ -104,14 +104,14 @@ struct FtorExtObject : public Ext
 // UseNonMemberFnc or UseMemberFnc e.g. template <> struct
 // SelectSerializeFnc<MyDerivedClass>:UseMemberFnc {};
 template<typename T>
-struct SelectSerializeFnc : std::integral_constant<int, 0>
+struct SelectSerializeFnc : eastl::integral_constant<int, 0>
 {
 };
 
 // types you need to inherit from when specializing SelectSerializeFnc class
-struct UseNonMemberFnc : std::integral_constant<int, 1>
+struct UseNonMemberFnc : eastl::integral_constant<int, 1>
 {};
-struct UseMemberFnc : std::integral_constant<int, 2>
+struct UseMemberFnc : eastl::integral_constant<int, 2>
 {};
 
 namespace details {
@@ -139,15 +139,15 @@ struct IsExtensionTraitsDefined
 // helper types for HasSerializeFunction
 template<typename S, typename T>
 using TrySerializeFunction =
-  decltype(serialize(std::declval<S&>(), std::declval<T&>()));
+  decltype(serialize(eastl::declval<S&>(), eastl::declval<T&>()));
 
 template<typename S, typename T>
 struct HasSerializeFunctionHelper
 {
   template<typename Q, typename R, typename = TrySerializeFunction<Q, R>>
-  static std::true_type tester(Q&&, R&&);
-  static std::false_type tester(...);
-  using type = decltype(tester(std::declval<S>(), std::declval<T>()));
+  static eastl::true_type tester(Q&&, R&&);
+  static eastl::false_type tester(...);
+  using type = decltype(tester(eastl::declval<S>(), eastl::declval<T>()));
 };
 template<typename S, typename T>
 struct HasSerializeFunction : HasSerializeFunctionHelper<S, T>::type
@@ -157,15 +157,15 @@ struct HasSerializeFunction : HasSerializeFunctionHelper<S, T>::type
 // helper types for HasSerializeMethod
 template<typename S, typename T>
 using TrySerializeMethod =
-  decltype(Access::serialize(std::declval<S&>(), std::declval<T&>()));
+  decltype(Access::serialize(eastl::declval<S&>(), eastl::declval<T&>()));
 
 template<typename S, typename T>
 struct HasSerializeMethodHelper
 {
   template<typename Q, typename R, typename = TrySerializeMethod<Q, R>>
-  static std::true_type tester(Q&&, R&&);
-  static std::false_type tester(...);
-  using type = decltype(tester(std::declval<S>(), std::declval<T>()));
+  static eastl::true_type tester(Q&&, R&&);
+  static eastl::false_type tester(...);
+  using type = decltype(tester(eastl::declval<S>(), eastl::declval<T>()));
 };
 template<typename S, typename T>
 struct HasSerializeMethod : HasSerializeMethodHelper<S, T>::type
@@ -175,15 +175,15 @@ struct HasSerializeMethod : HasSerializeMethodHelper<S, T>::type
 // helper types for IsBriefSyntaxIncluded
 template<typename S, typename T>
 using TryProcessBriefSyntax =
-  decltype(processBriefSyntax(std::declval<S&>(), std::declval<T&&>()));
+  decltype(processBriefSyntax(eastl::declval<S&>(), eastl::declval<T&&>()));
 
 template<typename S, typename T>
 struct IsBriefSyntaxIncludedHelper
 {
   template<typename Q, typename R, typename = TryProcessBriefSyntax<Q, R>>
-  static std::true_type tester(Q&&, R&&);
-  static std::false_type tester(...);
-  using type = decltype(tester(std::declval<S>(), std::declval<T>()));
+  static eastl::true_type tester(Q&&, R&&);
+  static eastl::false_type tester(...);
+  using type = decltype(tester(eastl::declval<S>(), eastl::declval<T>()));
 };
 
 template<typename S, typename T>
@@ -201,7 +201,7 @@ template<typename... Ts>
 using void_t = typename make_void<Ts...>::type;
 
 template<typename, typename, typename = void>
-struct HasSerializeFunction : std::false_type
+struct HasSerializeFunction : eastl::false_type
 {
 };
 
@@ -209,13 +209,13 @@ template<typename S, typename T>
 struct HasSerializeFunction<
   S,
   T,
-  void_t<decltype(serialize(std::declval<S&>(), std::declval<T&>()))>>
-  : std::true_type
+  void_t<decltype(serialize(eastl::declval<S&>(), eastl::declval<T&>()))>>
+  : eastl::true_type
 {
 };
 
 template<typename, typename, typename = void>
-struct HasSerializeMethod : std::false_type
+struct HasSerializeMethod : eastl::false_type
 {
 };
 
@@ -223,14 +223,14 @@ template<typename S, typename T>
 struct HasSerializeMethod<
   S,
   T,
-  void_t<decltype(Access::serialize(std::declval<S&>(), std::declval<T&>()))>>
-  : std::true_type
+  void_t<decltype(Access::serialize(eastl::declval<S&>(), eastl::declval<T&>()))>>
+  : eastl::true_type
 {
 };
 
 // this solution doesn't work with visual studio, but is more elegant
 template<typename, typename, typename = void>
-struct IsBriefSyntaxIncluded : std::false_type
+struct IsBriefSyntaxIncluded : eastl::false_type
 {
 };
 
@@ -238,8 +238,8 @@ template<typename S, typename T>
 struct IsBriefSyntaxIncluded<
   S,
   T,
-  void_t<decltype(processBriefSyntax(std::declval<S&>(), std::declval<T&&>()))>>
-  : std::true_type
+  void_t<decltype(processBriefSyntax(eastl::declval<S&>(), eastl::declval<T&&>()))>>
+  : eastl::true_type
 {
 };
 #endif
@@ -253,10 +253,10 @@ struct DummyType
  */
 template<typename T>
 struct IsFundamentalType
-  : std::integral_constant<bool,
-                           std::is_enum<T>::value ||
-                             std::is_floating_point<T>::value ||
-                             std::is_integral<T>::value>
+  : eastl::integral_constant<bool,
+                           eastl::is_enum<T>::value ||
+                             eastl::is_floating_point<T>::value ||
+                             eastl::is_integral<T>::value>
 {
 };
 
@@ -269,24 +269,24 @@ struct IntegralFromFundamental
 template<typename T>
 struct IntegralFromFundamental<
   T,
-  typename std::enable_if<std::is_enum<T>::value>::type>
+  typename eastl::enable_if<eastl::is_enum<T>::value>::type>
 {
-  using TValue = typename std::underlying_type<T>::type;
+  using TValue = typename eastl::underlying_type<T>::type;
 };
 
 template<typename T>
 struct IntegralFromFundamental<
   T,
-  typename std::enable_if<std::is_floating_point<T>::value>::type>
+  typename eastl::enable_if<eastl::is_floating_point<T>::value>::type>
 {
-  using TValue = typename std::
-    conditional<std::is_same<T, float>::value, uint32_t, uint64_t>::type;
+  using TValue = typename eastl::
+    conditional<eastl::is_same<T, float>::value, uint32_t, uint64_t>::type;
 };
 
 template<typename T>
 struct UnsignedFromFundamental
 {
-  using type = typename std::make_unsigned<
+  using type = typename eastl::make_unsigned<
     typename IntegralFromFundamental<T>::TValue>::type;
 };
 
@@ -312,7 +312,7 @@ struct SerializeFunction
                   "  {\n"
                   "    ...\n"
                   "  }\n");
-    using TDecayed = typename std::decay<T>::type;
+    using TDecayed = typename eastl::decay<T>::type;
     selectSerializeFnc(s, v, SelectSerializeFnc<TDecayed>{});
   }
 
@@ -322,7 +322,7 @@ struct SerializeFunction
   }
 
 private:
-  static void selectSerializeFnc(S& s, T& v, std::integral_constant<int, 0>)
+  static void selectSerializeFnc(S& s, T& v, eastl::integral_constant<int, 0>)
   {
     static_assert(
       !(HasSerializeFunction<S, T>::value && HasSerializeMethod<S, T>::value),
@@ -333,16 +333,16 @@ private:
       "  struct SelectSerializeFnc<DerivedClass>:UseMemberFnc {};\n");
     selectSerializeFnc(s,
                        v,
-                       std::integral_constant < int,
+                       eastl::integral_constant < int,
                        HasSerializeFunction<S, T>::value ? 1 : 2 > {});
   }
 
-  static void selectSerializeFnc(S& s, T& v, std::integral_constant<int, 1>)
+  static void selectSerializeFnc(S& s, T& v, eastl::integral_constant<int, 1>)
   {
     serialize(s, v);
   }
 
-  static void selectSerializeFnc(S& s, T& v, std::integral_constant<int, 2>)
+  static void selectSerializeFnc(S& s, T& v, eastl::integral_constant<int, 2>)
   {
     Access::serialize(s, v);
   }
@@ -362,7 +362,7 @@ struct BriefSyntaxFunction
       IsBriefSyntaxIncluded<S, T>::value,
       "\nPlease include '<bitsery/brief_syntax.h>' to use operator():\n");
 
-    processBriefSyntax(s, std::forward<T>(obj));
+    processBriefSyntax(s, eastl::forward<T>(obj));
   }
 };
 
@@ -371,14 +371,14 @@ struct BriefSyntaxFunction
  */
 
 template<int Index, typename... Conds>
-struct FindIndex : std::integral_constant<int, Index>
+struct FindIndex : eastl::integral_constant<int, Index>
 {
 };
 
 template<int Index, typename Cond, typename... Conds>
 struct FindIndex<Index, Cond, Conds...>
-  : std::conditional<Cond::value,
-                     std::integral_constant<int, Index>,
+  : eastl::conditional<Cond::value,
+                     eastl::integral_constant<int, Index>,
                      FindIndex<Index + 1, Conds...>>::type
 {
 };
@@ -387,8 +387,8 @@ template<typename T, typename Tuple>
 struct GetConvertibleTypeIndexFromTuple;
 
 template<typename T, typename... Us>
-struct GetConvertibleTypeIndexFromTuple<T, std::tuple<Us...>>
-  : FindIndex<0, std::is_convertible<Us&, T&>...>
+struct GetConvertibleTypeIndexFromTuple<T, eastl::tuple<Us...>>
+  : FindIndex<0, eastl::is_convertible<Us&, T&>...>
 {
 };
 
@@ -396,10 +396,10 @@ template<typename T, typename Tuple>
 struct IsExistsConvertibleTupleType;
 
 template<typename T, typename... Us>
-struct IsExistsConvertibleTupleType<T, std::tuple<Us...>>
-  : std::integral_constant<
+struct IsExistsConvertibleTupleType<T, eastl::tuple<Us...>>
+  : eastl::integral_constant<
       bool,
-      GetConvertibleTypeIndexFromTuple<T, std::tuple<Us...>>::value !=
+      GetConvertibleTypeIndexFromTuple<T, eastl::tuple<Us...>>::value !=
         sizeof...(Us)>
 {
 };
@@ -410,14 +410,14 @@ struct IsExistsConvertibleTupleType<T, std::tuple<Us...>>
 
 template<bool AssertExists, typename TCast, typename TContext>
 TCast*
-getDirectlyIfExists(TContext& ctx, std::true_type)
+getDirectlyIfExists(TContext& ctx, eastl::true_type)
 {
   return &static_cast<TCast&>(ctx);
 }
 
 template<bool AssertExists, typename TCast, typename TContext>
 TCast*
-getDirectlyIfExists(TContext&, std::false_type)
+getDirectlyIfExists(TContext&, eastl::false_type)
 {
   // TCast cannot be convertible from provided context
   static_assert(
@@ -429,16 +429,16 @@ getDirectlyIfExists(TContext&, std::false_type)
 
 template<bool AssertExists, typename TCast, typename... TArgs>
 TCast*
-getFromTupleIfExists(std::tuple<TArgs...>& ctx, std::true_type)
+getFromTupleIfExists(eastl::tuple<TArgs...>& ctx, eastl::true_type)
 {
   using TupleIndex =
-    GetConvertibleTypeIndexFromTuple<TCast, std::tuple<TArgs...>>;
-  return &static_cast<TCast&>(std::get<TupleIndex::value>(ctx));
+    GetConvertibleTypeIndexFromTuple<TCast, eastl::tuple<TArgs...>>;
+  return &static_cast<TCast&>(eastl::get<TupleIndex::value>(ctx));
 }
 
 template<bool AssertExists, typename TCast, typename... TArgs>
 TCast*
-getFromTupleIfExists(std::tuple<TArgs...>&, std::false_type)
+getFromTupleIfExists(eastl::tuple<TArgs...>&, eastl::false_type)
 {
   // TCast cannot be convertible from provided context
   static_assert(
@@ -454,16 +454,16 @@ TCast*
 getContext(TContext& ctx)
 {
   return getDirectlyIfExists<AssertExists, TCast>(
-    ctx, std::is_convertible<TContext&, TCast&>{});
+    ctx, eastl::is_convertible<TContext&, TCast&>{});
 }
 
 // tuple context
 template<bool AssertExists, typename TCast, typename... TArgs>
 TCast*
-getContext(std::tuple<TArgs...>& ctx)
+getContext(eastl::tuple<TArgs...>& ctx)
 {
   return getFromTupleIfExists<AssertExists, TCast>(
-    ctx, IsExistsConvertibleTupleType<TCast, std::tuple<TArgs...>>{});
+    ctx, IsExistsConvertibleTupleType<TCast, eastl::tuple<TArgs...>>{});
 }
 
 template<typename Adapter, typename Context>
@@ -478,7 +478,7 @@ public:
   // adapter wrapper, which has non trivial destructor
   template<typename... TArgs>
   explicit AdapterAndContextRef(Context& ctx, TArgs&&... args)
-    : _adapter{ std::forward<TArgs>(args)... }
+    : _adapter{ eastl::forward<TArgs>(args)... }
     , _context{ ctx }
   {
   }
@@ -503,7 +503,7 @@ public:
 
   Adapter& adapter() & { return _adapter; }
 
-  Adapter adapter() && { return std::move(_adapter); }
+  Adapter adapter() && { return eastl::move(_adapter); }
 
 protected:
   Adapter _adapter;
@@ -519,14 +519,14 @@ public:
 
   template<typename... TArgs>
   explicit AdapterAndContextRef(TArgs&&... args)
-    : _adapter{ std::forward<TArgs>(args)... }
+    : _adapter{ eastl::forward<TArgs>(args)... }
   {
   }
 
   template<typename T>
   T& context()
   {
-    static_assert(std::is_void<T>::value, "Context is not defined (is void).");
+    static_assert(eastl::is_void<T>::value, "Context is not defined (is void).");
   }
 
   template<typename T>
@@ -537,7 +537,7 @@ public:
 
   Adapter& adapter() & { return _adapter; }
 
-  Adapter adapter() && { return std::move(_adapter); }
+  Adapter adapter() && { return eastl::move(_adapter); }
 
 protected:
   Adapter _adapter;
@@ -548,12 +548,12 @@ protected:
  */
 
 template<typename T, template<typename...> class Template>
-struct IsSpecializationOf : std::false_type
+struct IsSpecializationOf : eastl::false_type
 {
 };
 
 template<template<typename...> class Template, typename... Args>
-struct IsSpecializationOf<Template<Args...>, Template> : std::true_type
+struct IsSpecializationOf<Template<Args...>, Template> : eastl::true_type
 {
 };
 

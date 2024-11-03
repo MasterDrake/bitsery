@@ -24,6 +24,28 @@
 #include <bitsery/ext/pointer.h>
 #include <gmock/gmock.h>
 
+void* __cdecl operator new[](size_t size, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
+void* __cdecl operator new[](size_t size, size_t alignement, size_t offset, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)alignement;
+	(void)offset;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
 using bitsery::ext::PointerLinkingContext;
 using bitsery::ext::PointerObserver;
 using bitsery::ext::PointerOwner;
@@ -84,7 +106,7 @@ TEST(SerializeExtensionPointer, RequiresPointerLinkingContext)
   sctx1.createDeserializer(plctx1).ext(data, PointerOwner{});
 
   // linking context in tuple
-  using ContextInTuple = std::tuple<int, PointerLinkingContext, float, char>;
+  using ContextInTuple = eastl::tuple<int, PointerLinkingContext, float, char>;
   ContextInTuple plctx2(0, PointerLinkingContext{}, 0.0f, 'a');
   BasicSerializationContext<ContextInTuple> sctx2;
   sctx2.createSerializer(plctx2).ext(data, PointerObserver{});
@@ -261,9 +283,9 @@ TEST_F(SerializeExtensionPointerSerialization,
   createDeserializer();
   EXPECT_THAT(sctx1.ser->adapter().writtenBytesCount(), Eq(2));
   size_t res;
-  bitsery::details::readSize(sctx1.des->adapter(), res, 0, std::false_type{});
+  bitsery::details::readSize(sctx1.des->adapter(), res, 0, eastl::false_type{});
   EXPECT_THAT(res, Eq(0));
-  bitsery::details::readSize(sctx1.des->adapter(), res, 0, std::false_type{});
+  bitsery::details::readSize(sctx1.des->adapter(), res, 0, eastl::false_type{});
   EXPECT_THAT(res, Eq(0));
 }
 
@@ -277,13 +299,13 @@ TEST_F(SerializeExtensionPointerSerialization, PointerIdsStartsFromOne)
   createDeserializer();
   EXPECT_THAT(sctx1.ser->adapter().writtenBytesCount(), Eq(4));
   size_t res;
-  bitsery::details::readSize(sctx1.des->adapter(), res, 0, std::false_type{});
+  bitsery::details::readSize(sctx1.des->adapter(), res, 0, eastl::false_type{});
   EXPECT_THAT(res, Eq(1));
-  bitsery::details::readSize(sctx1.des->adapter(), res, 0, std::false_type{});
+  bitsery::details::readSize(sctx1.des->adapter(), res, 0, eastl::false_type{});
   EXPECT_THAT(res, Eq(2));
-  bitsery::details::readSize(sctx1.des->adapter(), res, 0, std::false_type{});
+  bitsery::details::readSize(sctx1.des->adapter(), res, 0, eastl::false_type{});
   EXPECT_THAT(res, Eq(2));
-  bitsery::details::readSize(sctx1.des->adapter(), res, 0, std::false_type{});
+  bitsery::details::readSize(sctx1.des->adapter(), res, 0, eastl::false_type{});
   EXPECT_THAT(res, Eq(0));
 }
 
@@ -308,15 +330,15 @@ TEST_F(SerializeExtensionPointerSerialization,
   auto& des = createDeserializer();
   EXPECT_THAT(sctx1.ser->adapter().writtenBytesCount(), Eq(3 + 6));
   size_t id{};
-  bitsery::details::readSize(sctx1.des->adapter(), id, 0, std::false_type{});
+  bitsery::details::readSize(sctx1.des->adapter(), id, 0, eastl::false_type{});
   EXPECT_THAT(id, Eq(1));
   des.value2b(r1);
   EXPECT_THAT(r1, Eq(d1));
-  bitsery::details::readSize(sctx1.des->adapter(), id, 0, std::false_type{});
+  bitsery::details::readSize(sctx1.des->adapter(), id, 0, eastl::false_type{});
   EXPECT_THAT(id, Eq(2));
   des.value4b(r2);
   EXPECT_THAT(r2, Eq(d2));
-  bitsery::details::readSize(sctx1.des->adapter(), id, 0, std::false_type{});
+  bitsery::details::readSize(sctx1.des->adapter(), id, 0, eastl::false_type{});
   EXPECT_THAT(id, Eq(2));
 }
 
@@ -331,10 +353,10 @@ TEST_F(SerializeExtensionPointerSerialization,
   EXPECT_THAT(sctx1.ser->adapter().writtenBytesCount(),
               Eq(2 + 4 + MyStruct1::SIZE));
   size_t id;
-  bitsery::details::readSize(sctx1.des->adapter(), id, 0, std::false_type{});
+  bitsery::details::readSize(sctx1.des->adapter(), id, 0, eastl::false_type{});
   des1.value4b(r2);
   EXPECT_THAT(r2, Eq(*pd2));
-  bitsery::details::readSize(sctx1.des->adapter(), id, 0, std::false_type{});
+  bitsery::details::readSize(sctx1.des->adapter(), id, 0, eastl::false_type{});
   des1.object(r3);
   EXPECT_THAT(r3, Eq(*pd3));
 }
@@ -460,8 +482,8 @@ TEST_F(SerializeExtensionPointerDeserialization, PointerObserver)
 
 struct Test1Data
 {
-  std::vector<MyStruct1> vdata;
-  std::vector<MyStruct1*> vptr;
+  eastl::vector<MyStruct1> vdata;
+  eastl::vector<MyStruct1*> vptr;
   MyStruct1 o1;
   MyStruct1* po1;
   int32_t i1;
@@ -499,13 +521,13 @@ TEST(SerializeExtensionPointer, IntegrationTest)
   data.vdata.push_back({ 5987, -798 });
   // container of non owning pointers (observers)
   data.vptr.push_back(nullptr);
-  data.vptr.push_back(std::addressof(data.vdata[0]));
-  data.vptr.push_back(std::addressof(data.vdata[2]));
+  data.vptr.push_back(eastl::addressof(data.vdata[0]));
+  data.vptr.push_back(eastl::addressof(data.vdata[2]));
   // regular fields
   data.o1 = MyStruct1{ 145, 948 };
   data.i1 = 945415;
   // observer
-  data.po1 = std::addressof(data.vdata[1]);
+  data.po1 = eastl::addressof(data.vdata[1]);
   // owning pointer
   data.pi1 = new int32_t{};
 
@@ -526,10 +548,10 @@ TEST(SerializeExtensionPointer, IntegrationTest)
   EXPECT_THAT(*res.pi1, Eq(*data.pi1));
   EXPECT_THAT(res.pi1, ::testing::Ne(data.pi1));
   // check if observers points to correct data
-  EXPECT_THAT(res.po1, Eq(std::addressof(res.vdata[1])));
+  EXPECT_THAT(res.po1, Eq(eastl::addressof(res.vdata[1])));
   EXPECT_THAT(res.vptr[0], ::testing::IsNull());
-  EXPECT_THAT(res.vptr[1], Eq(std::addressof(res.vdata[0])));
-  EXPECT_THAT(res.vptr[2], Eq(std::addressof(res.vdata[2])));
+  EXPECT_THAT(res.vptr[1], Eq(eastl::addressof(res.vdata[0])));
+  EXPECT_THAT(res.vptr[2], Eq(eastl::addressof(res.vdata[2])));
 
   // free owning raw pointers
   delete data.pi1;

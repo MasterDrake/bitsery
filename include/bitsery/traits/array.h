@@ -20,28 +20,28 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef BITSERY_TRAITS_STD_ARRAY_H
-#define BITSERY_TRAITS_STD_ARRAY_H
+#ifndef BITSERY_TRAITS_EASTL_ARRAY_H
+#define BITSERY_TRAITS_EASTL_ARRAY_H
 
-#include "core/std_defaults.h"
-#include <array>
+#include "core/eastl_defaults.h"
+#include <EASTL/array.h>
 
 namespace bitsery {
 
 namespace traits {
 template<typename T, size_t N>
-struct ContainerTraits<std::array<T, N>>
-  : public StdContainer<std::array<T, N>, false, true>
+struct ContainerTraits<eastl::array<T, N>>
+  : public EastlContainer<eastl::array<T, N>, false, true>
 {
 };
 
 template<typename T, size_t N>
-struct BufferAdapterTraits<std::array<T, N>>
-  : public StdContainerForBufferAdapter<std::array<T, N>>
+struct BufferAdapterTraits<eastl::array<T, N>>
+  : public EastlContainerForBufferAdapter<eastl::array<T, N>>
 {
 };
 }
 
 }
 
-#endif // BITSERY_TYPE_TRAITS_STD_ARRAY_H
+#endif // BITSERY_TYPE_TRAITS_EASTL_ARRAY_H

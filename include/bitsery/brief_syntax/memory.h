@@ -20,32 +20,32 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef BITSERY_BRIEF_SYNTAX_TYPE_STD_MEMORY_H
-#define BITSERY_BRIEF_SYNTAX_TYPE_STD_MEMORY_H
+#ifndef BITSERY_BRIEF_SYNTAX_TYPE_EASTL_MEMORY_H
+#define BITSERY_BRIEF_SYNTAX_TYPE_EASTL_MEMORY_H
 
-#include "../ext/std_smart_ptr.h"
+#include "../ext/eastl_smart_ptr.h"
 
 namespace bitsery {
 template<typename S, typename T, typename D>
 void
-serialize(S& s, std::unique_ptr<T, D>& obj)
+serialize(S& s, eastl::unique_ptr<T, D>& obj)
 {
-  s.ext(obj, ext::StdSmartPtr{});
+  s.ext(obj, ext::EastlSmartPtr{});
 }
 
 template<typename S, typename T>
 void
-serialize(S& s, std::shared_ptr<T>& obj)
+serialize(S& s, eastl::shared_ptr<T>& obj)
 {
-  s.ext(obj, ext::StdSmartPtr{});
+  s.ext(obj, ext::EastlSmartPtr{});
 }
 
 template<typename S, typename T>
 void
-serialize(S& s, std::weak_ptr<T>& obj)
+serialize(S& s, eastl::weak_ptr<T>& obj)
 {
-  s.ext(obj, ext::StdSmartPtr{});
+  s.ext(obj, ext::EastlSmartPtr{});
 }
 }
 
-#endif // BITSERY_BRIEF_SYNTAX_TYPE_STD_MEMORY_H
+#endif // BITSERY_BRIEF_SYNTAX_TYPE_EASTL_MEMORY_H

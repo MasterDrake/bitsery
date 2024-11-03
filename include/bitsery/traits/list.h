@@ -20,19 +20,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef BITSERY_TRAITS_STD_LIST_H
-#define BITSERY_TRAITS_STD_LIST_H
+#ifndef BITSERY_TRAITS_EASTL_LIST_H
+#define BITSERY_TRAITS_EASTL_LIST_H
 
-#include "core/std_defaults.h"
-#include <list>
+#include "core/eastl_defaults.h"
+#include <EASTL/list.h>
 
 namespace bitsery {
 
 namespace traits {
 
 template<typename T, typename Allocator>
-struct ContainerTraits<std::list<T, Allocator>>
-  : public StdContainer<std::list<T, Allocator>, true, false>
+struct ContainerTraits<eastl::list<T, Allocator>>
+  : public EastlContainer<eastl::list<T, Allocator>, true, false>
 {
 };
 
@@ -40,4 +40,4 @@ struct ContainerTraits<std::list<T, Allocator>>
 
 }
 
-#endif // BITSERY_TRAITS_STD_LIST_H
+#endif // BITSERY_TRAITS_EASTL_LIST_H

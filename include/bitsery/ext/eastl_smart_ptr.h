@@ -20,14 +20,16 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef BITSERY_EXT_STD_SMART_PTR_H
-#define BITSERY_EXT_STD_SMART_PTR_H
+#ifndef BITSERY_EXT_EASTL_SMART_PTR_H
+#define BITSERY_EXT_EASTL_SMART_PTR_H
 
 #include "../traits/core/traits.h"
 #include "utils/pointer_utils.h"
 #include "utils/polymorphism_utils.h"
 #include "utils/rtti_utils.h"
-#include <memory>
+
+#include "EASTL/shared_ptr.h"
+#include "EASTL/unique_ptr.h"
 
 namespace bitsery {
 namespace ext {
@@ -39,7 +41,7 @@ namespace smart_ptr_details {
 // different type for different T
 struct SharedPtrSharedState : pointer_utils::PointerSharedStateBase
 {
-  std::shared_ptr<void> obj{};
+  eastl::shared_ptr<void> obj{};
 };
 
 template<typename T>
@@ -49,14 +51,14 @@ struct SmartPtrOwnerManager
   using TElement = typename T::element_type;
 
   template<typename TDeleter>
-  static TElement* getPtr(std::unique_ptr<TElement, TDeleter>& obj)
+  static TElement* getPtr(eastl::unique_ptr<TElement, TDeleter>& obj)
   {
     return obj.get();
   }
 
-  static TElement* getPtr(std::shared_ptr<TElement>& obj) { return obj.get(); }
+  static TElement* getPtr(eastl::shared_ptr<TElement>& obj) { return obj.get(); }
 
-  static TElement* getPtr(std::weak_ptr<TElement>& obj)
+  static TElement* getPtr(eastl::weak_ptr<TElement>& obj)
   {
     if (auto ptr = obj.lock())
       return ptr.get();
@@ -65,15 +67,15 @@ struct SmartPtrOwnerManager
 
   static constexpr PointerOwnershipType getOwnership()
   {
-    return ::bitsery::details::IsSpecializationOf<T, std::unique_ptr>::value
+    return ::bitsery::details::IsSpecializationOf<T, eastl::unique_ptr>::value
              ? PointerOwnershipType::Owner
-           : std::is_same<std::shared_ptr<TElement>, T>::value
+           : eastl::is_same<eastl::shared_ptr<TElement>, T>::value
              ? PointerOwnershipType::SharedOwner
              : PointerOwnershipType::SharedObserver;
   }
 
   template<typename TDeleter>
-  static void create(std::unique_ptr<TElement, TDeleter>& obj,
+  static void create(eastl::unique_ptr<TElement, TDeleter>& obj,
                      pointer_utils::PolyAllocWithTypeId alloc,
                      size_t typeId)
   {
@@ -82,15 +84,15 @@ struct SmartPtrOwnerManager
 
   template<typename TDeleter>
   static void createPolymorphic(
-    std::unique_ptr<TElement, TDeleter>& obj,
+    eastl::unique_ptr<TElement, TDeleter>& obj,
     pointer_utils::PolyAllocWithTypeId alloc,
-    const std::shared_ptr<PolymorphicHandlerBase>& handler)
+    const eastl::shared_ptr<PolymorphicHandlerBase>& handler)
   {
     obj.reset(static_cast<TElement*>(handler->create(alloc)));
   }
 
   template<typename TDel>
-  static void destroy(std::unique_ptr<TElement, TDel>& obj,
+  static void destroy(eastl::unique_ptr<TElement, TDel>& obj,
                       pointer_utils::PolyAllocWithTypeId alloc,
                       size_t typeId)
   {
@@ -100,34 +102,34 @@ struct SmartPtrOwnerManager
 
   template<typename TDel>
   static void destroyPolymorphic(
-    std::unique_ptr<TElement, TDel>& obj,
+    eastl::unique_ptr<TElement, TDel>& obj,
     pointer_utils::PolyAllocWithTypeId alloc,
-    const std::shared_ptr<PolymorphicHandlerBase>& handler)
+    const eastl::shared_ptr<PolymorphicHandlerBase>& handler)
   {
     auto ptr = obj.release();
     handler->destroy(alloc, ptr);
   }
 
-  static void destroy(std::shared_ptr<TElement>& obj, MemResourceBase*, size_t)
+  static void destroy(eastl::shared_ptr<TElement>& obj, MemResourceBase*, size_t)
   {
     obj.reset();
   }
 
-  static void destroyPolymorphic(std::shared_ptr<TElement>& obj,
+  static void destroyPolymorphic(eastl::shared_ptr<TElement>& obj,
                                  MemResourceBase*,
-                                 const std::shared_ptr<PolymorphicHandlerBase>&)
+                                 const eastl::shared_ptr<PolymorphicHandlerBase>&)
   {
     obj.reset();
   }
 
-  static void destroy(std::weak_ptr<TElement>& obj, MemResourceBase*, size_t)
+  static void destroy(eastl::weak_ptr<TElement>& obj, MemResourceBase*, size_t)
   {
     obj.reset();
   }
 
-  static void destroyPolymorphic(std::weak_ptr<TElement>& obj,
+  static void destroyPolymorphic(eastl::weak_ptr<TElement>& obj,
                                  MemResourceBase*,
-                                 const std::shared_ptr<PolymorphicHandlerBase>&)
+                                 const eastl::shared_ptr<PolymorphicHandlerBase>&)
   {
     obj.reset();
   }
@@ -136,7 +138,7 @@ struct SmartPtrOwnerManager
   using TSharedState = SharedPtrSharedState;
 
   static void createShared(TSharedState& state,
-                           std::shared_ptr<TElement>& obj,
+                           eastl::shared_ptr<TElement>& obj,
                            MemResourceBase* memResource,
                            size_t typeId)
   {
@@ -151,9 +153,9 @@ struct SmartPtrOwnerManager
 
   static void createSharedPolymorphic(
     TSharedState& state,
-    std::shared_ptr<TElement>& obj,
+    eastl::shared_ptr<TElement>& obj,
     MemResourceBase* memResource,
-    const std::shared_ptr<PolymorphicHandlerBase>& handler)
+    const eastl::shared_ptr<PolymorphicHandlerBase>& handler)
   {
     // capture deleter parameters by value
     pointer_utils::PolyAllocWithTypeId alloc{ memResource };
@@ -165,12 +167,12 @@ struct SmartPtrOwnerManager
   }
 
   static void createShared(TSharedState& state,
-                           std::weak_ptr<TElement>& obj,
+                           eastl::weak_ptr<TElement>& obj,
                            MemResourceBase* memResource,
                            size_t typeId)
   {
     pointer_utils::PolyAllocWithTypeId alloc{ memResource };
-    std::shared_ptr<TElement> res(
+    eastl::shared_ptr<TElement> res(
       alloc.newObject<TElement>(typeId),
       [alloc, typeId](TElement* data) { alloc.deleteObject(data, typeId); },
       pointer_utils::StdPolyAlloc<TElement>(memResource));
@@ -180,12 +182,12 @@ struct SmartPtrOwnerManager
 
   static void createSharedPolymorphic(
     TSharedState& state,
-    std::weak_ptr<TElement>& obj,
+    eastl::weak_ptr<TElement>& obj,
     MemResourceBase* memResource,
-    const std::shared_ptr<PolymorphicHandlerBase>& handler)
+    const eastl::shared_ptr<PolymorphicHandlerBase>& handler)
   {
     pointer_utils::PolyAllocWithTypeId alloc{ memResource };
-    std::shared_ptr<TElement> res(
+    eastl::shared_ptr<TElement> res(
       static_cast<TElement*>(handler->create(alloc)),
       [alloc, handler](TElement* data) { handler->destroy(alloc, data); },
       pointer_utils::StdPolyAlloc<TElement>(memResource));
@@ -195,33 +197,33 @@ struct SmartPtrOwnerManager
 
   static void saveToSharedState(TSharedState& state, T& obj)
   {
-    state.obj = std::shared_ptr<TElement>(obj);
+    state.obj = eastl::shared_ptr<TElement>(obj);
   }
 
   static void loadFromSharedState(TSharedState& state, T& obj)
   {
     // reinterpret_pointer_cast is only since c++17
     auto p = reinterpret_cast<TElement*>(state.obj.get());
-    obj = std::shared_ptr<TElement>(state.obj, p);
+    obj = eastl::shared_ptr<TElement>(state.obj, p);
   }
 };
 }
 
 template<typename RTTI>
-using StdSmartPtrBase = pointer_utils::PointerObjectExtensionBase<
+using EastlSmartPtrBase = pointer_utils::PointerObjectExtensionBase<
   smart_ptr_details::SmartPtrOwnerManager,
   PolymorphicContext,
   RTTI>;
 
 // helper type for convienience
-using StdSmartPtr = StdSmartPtrBase<StandardRTTI>;
+using EastlSmartPtr = EastlSmartPtrBase<StandardRTTI>;
 
 }
 
 namespace traits {
 
 template<typename T, typename RTTI>
-struct ExtensionTraits<ext::StdSmartPtrBase<RTTI>, T>
+struct ExtensionTraits<ext::EastlSmartPtrBase<RTTI>, T>
 {
   using TValue = typename T::element_type;
   static constexpr bool SupportValueOverload = true;
@@ -235,4 +237,4 @@ struct ExtensionTraits<ext::StdSmartPtrBase<RTTI>, T>
 
 }
 
-#endif // BITSERY_EXT_STD_SMART_PTR_H
+#endif // BITSERY_EXT_EASTL_SMART_PTR_H

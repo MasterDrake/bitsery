@@ -25,7 +25,7 @@
 
 #include "../details/adapter_bit_packing.h"
 #include <cstddef>
-#include <type_traits>
+#include <EASTL/type_traits.h>
 
 namespace bitsery {
 
@@ -41,7 +41,7 @@ public:
   template<size_t SIZE, typename T>
   void writeBytes(const T&)
   {
-    static_assert(std::is_integral<T>(), "");
+    static_assert(eastl::is_integral<T>(), "");
     static_assert(sizeof(T) == SIZE, "");
     _currPos += SIZE;
   }
@@ -49,7 +49,7 @@ public:
   template<size_t SIZE, typename T>
   void writeBuffer(const T*, size_t count)
   {
-    static_assert(std::is_integral<T>(), "");
+    static_assert(eastl::is_integral<T>(), "");
     static_assert(sizeof(T) == SIZE, "");
     _currPos += SIZE * count;
   }

@@ -56,7 +56,7 @@ enum class MyEnum:uint16_t { V1,V2,V3 };
 struct MyStruct {
     uint32_t i;
     MyEnum e;
-    std::vector<float> fs;
+    eastl::vector<float> fs;
 };
 
 template <typename S>
@@ -66,7 +66,7 @@ void serialize(S& s, MyStruct& o) {
     s.container4b(o.fs, 10);
 }
 
-using Buffer = std::vector<uint8_t>;
+using Buffer = eastl::vector<uint8_t>;
 using OutputAdapter = bitsery::OutputBufferAdapter<Buffer>;
 using InputAdapter = bitsery::InputBufferAdapter<Buffer>;
 
@@ -96,7 +96,7 @@ This documentation comprises these parts:
 
 Works with C++11 compiler, no additional dependencies, include `<bitsery/bitsery.h>` and you're done.
 
-> some **bitsery** extensions might require higher C++ standard (e.g. `StdVariant`)
+> some **bitsery** extensions might require higher C++ standard (e.g. `EastlVariant`)
 
 ## Platforms
 

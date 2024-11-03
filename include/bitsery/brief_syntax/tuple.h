@@ -20,18 +20,18 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef BITSERY_BRIEF_SYNTAX_TYPE_STD_TUPLE_H
-#define BITSERY_BRIEF_SYNTAX_TYPE_STD_TUPLE_H
+#ifndef BITSERY_BRIEF_SYNTAX_TYPE_EASTL_TUPLE_H
+#define BITSERY_BRIEF_SYNTAX_TYPE_EASTL_TUPLE_H
 
-#include "../ext/std_tuple.h"
+#include "../ext/eastl_tuple.h"
 
 namespace bitsery {
 template<typename S, typename... Ts>
 void
-serialize(S& s, std::tuple<Ts...>& obj)
+serialize(S& s, eastl::tuple<Ts...>& obj)
 {
-  s.ext(obj, ext::StdTuple{});
+  s.ext(obj, ext::EastlTuple{});
 }
 }
 
-#endif // BITSERY_BRIEF_SYNTAX_TYPE_STD_TUPLE_H
+#endif // BITSERY_BRIEF_SYNTAX_TYPE_EASTL_TUPLE_H

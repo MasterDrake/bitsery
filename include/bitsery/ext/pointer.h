@@ -38,9 +38,9 @@ namespace pointer_details {
 template<typename T>
 struct PtrOwnerManager
 {
-  static_assert(std::is_pointer<T>::value, "");
+  static_assert(eastl::is_pointer<T>::value, "");
 
-  using TElement = typename std::remove_pointer<T>::type;
+  using TElement = typename eastl::remove_pointer<T>::type;
 
   static TElement* getPtr(T& obj) { return obj; }
 
@@ -59,7 +59,7 @@ struct PtrOwnerManager
   static void createPolymorphic(
     T& obj,
     pointer_utils::PolyAllocWithTypeId alloc,
-    const std::shared_ptr<PolymorphicHandlerBase>& handler)
+    const eastl::shared_ptr<PolymorphicHandlerBase>& handler)
   {
     obj = static_cast<TElement*>(handler->create(alloc));
   }
@@ -75,7 +75,7 @@ struct PtrOwnerManager
   static void destroyPolymorphic(
     T& obj,
     pointer_utils::PolyAllocWithTypeId alloc,
-    const std::shared_ptr<PolymorphicHandlerBase>& handler)
+    const eastl::shared_ptr<PolymorphicHandlerBase>& handler)
   {
     handler->destroy(alloc, obj);
     obj = nullptr;
@@ -85,9 +85,9 @@ struct PtrOwnerManager
 template<typename T>
 struct PtrObserverManager
 {
-  static_assert(std::is_pointer<T>::value, "");
+  static_assert(eastl::is_pointer<T>::value, "");
 
-  using TElement = typename std::remove_pointer<T>::type;
+  using TElement = typename eastl::remove_pointer<T>::type;
 
   static TElement* getPtr(T& obj) { return obj; }
 
@@ -114,7 +114,7 @@ template<typename T>
 struct NonPtrManager
 {
 
-  static_assert(!std::is_pointer<T>::value, "");
+  static_assert(!eastl::is_pointer<T>::value, "");
 
   using TElement = T;
 
@@ -160,7 +160,7 @@ struct NoRTTI
   template<typename TBase, typename TDerived>
   static constexpr TDerived* cast(TBase* obj)
   {
-    static_assert(!std::is_pointer<TDerived>::value, "");
+    static_assert(!eastl::is_pointer<TDerived>::value, "");
     return dynamic_cast<TDerived*>(obj);
   }
 

@@ -25,7 +25,7 @@
 
 #include "../common.h"
 #include "not_defined_type.h"
-#include <algorithm>
+#include <EASTL/algorithm.h>
 #include <cassert>
 #include <climits>
 #include <cstdint>
@@ -49,7 +49,7 @@ namespace details {
 
 template<typename Reader>
 void
-handleReadMaxSize(Reader& r, size_t& size, size_t maxSize, std::true_type)
+handleReadMaxSize(Reader& r, size_t& size, size_t maxSize, eastl::true_type)
 {
   if (size > maxSize) {
     r.error(ReaderError::InvalidData);
@@ -59,7 +59,7 @@ handleReadMaxSize(Reader& r, size_t& size, size_t maxSize, std::true_type)
 
 template<typename Reader>
 void
-handleReadMaxSize(Reader&, size_t&, size_t, std::false_type)
+handleReadMaxSize(Reader&, size_t&, size_t, eastl::false_type)
 {
 }
 
@@ -68,7 +68,7 @@ void
 readSize(Reader& r,
          size_t& size,
          size_t maxSize,
-         std::integral_constant<bool, CheckMaxSize> checkMaxSize)
+         eastl::integral_constant<bool, CheckMaxSize> checkMaxSize)
 {
   uint8_t hb{};
   r.template readBytes<1>(hb);
@@ -156,13 +156,13 @@ TValue
 swap(TValue value)
 {
   constexpr size_t TSize = sizeof(TValue);
-  using UT = typename std::conditional<
+  using UT = typename eastl::conditional<
     TSize == 1,
     uint8_t,
-    typename std::conditional<
+    typename eastl::conditional<
       TSize == 2,
       uint16_t,
-      typename std::conditional<TSize == 4, uint32_t, uint64_t>::type>::type>::
+      typename eastl::conditional<TSize == 4, uint32_t, uint64_t>::type>::type>::
     type;
   return static_cast<TValue>(SwapImpl::exec(static_cast<UT>(value)));
 }
@@ -197,7 +197,7 @@ getSystemEndianness()
 
 template<typename Config, typename T>
 using ShouldSwap =
-  std::integral_constant<bool,
+  eastl::integral_constant<bool,
                          Config::Endianness != details::getSystemEndianness() &&
                            sizeof(T) != 1>;
 
@@ -205,7 +205,7 @@ using ShouldSwap =
  * helper types to work with bits
  */
 template<typename T>
-struct BitsSize : public std::integral_constant<size_t, sizeof(T) * 8>
+struct BitsSize : public eastl::integral_constant<size_t, sizeof(T) * 8>
 {
   static_assert(CHAR_BIT == 8, "only support systems with byte size of 8 bits");
 };
@@ -287,7 +287,7 @@ struct OutputAdapterBaseCRTP
   template<size_t SIZE, typename T>
   void writeBytes(const T& v)
   {
-    static_assert(std::is_integral<T>(), "");
+    static_assert(eastl::is_integral<T>(), "");
     static_assert(sizeof(T) == SIZE, "");
     writeSwappedValue(&v, ShouldSwap<typename Adapter::TConfig, T>{});
   }
@@ -295,7 +295,7 @@ struct OutputAdapterBaseCRTP
   template<size_t SIZE, typename T>
   void writeBuffer(const T* buf, size_t count)
   {
-    static_assert(std::is_integral<T>(), "");
+    static_assert(eastl::is_integral<T>(), "");
     static_assert(sizeof(T) == SIZE, "");
     writeSwappedBuffer(buf, count, ShouldSwap<typename Adapter::TConfig, T>{});
   }
@@ -304,7 +304,7 @@ struct OutputAdapterBaseCRTP
   void writeBits(const T&, size_t)
   {
     static_assert(
-      std::is_void<T>::value,
+      eastl::is_void<T>::value,
       "Bit-packing is not enabled.\nEnable by call to `enableBitPacking`) or "
       "create Serializer with bit packing enabled.");
   }
@@ -319,7 +319,7 @@ struct OutputAdapterBaseCRTP
 
 private:
   template<typename T>
-  void writeSwappedValue(const T* v, std::true_type)
+  void writeSwappedValue(const T* v, eastl::true_type)
   {
     const auto res = details::swap(*v);
     static_cast<Adapter*>(this)->template writeInternalValue<sizeof(T)>(
@@ -327,16 +327,16 @@ private:
   }
 
   template<typename T>
-  void writeSwappedValue(const T* v, std::false_type)
+  void writeSwappedValue(const T* v, eastl::false_type)
   {
     static_cast<Adapter*>(this)->template writeInternalValue<sizeof(T)>(
       reinterpret_cast<const typename Adapter::TValue*>(v));
   }
 
   template<typename T>
-  void writeSwappedBuffer(const T* v, size_t count, std::true_type)
+  void writeSwappedBuffer(const T* v, size_t count, eastl::true_type)
   {
-    std::for_each(v, std::next(v, count), [this](const T& inner_v) {
+    eastl::for_each(v, eastl::next(v, count), [this](const T& inner_v) {
       const auto res = details::swap(inner_v);
       static_cast<Adapter*>(this)->template writeInternalValue<sizeof(T)>(
         reinterpret_cast<const typename Adapter::TValue*>(&res));
@@ -344,7 +344,7 @@ private:
   }
 
   template<typename T>
-  void writeSwappedBuffer(const T* v, size_t count, std::false_type)
+  void writeSwappedBuffer(const T* v, size_t count, eastl::false_type)
   {
     static_cast<Adapter*>(this)->writeInternalBuffer(
       reinterpret_cast<const typename Adapter::TValue*>(v), count * sizeof(T));
@@ -358,7 +358,7 @@ struct InputAdapterBaseCRTP
   template<size_t SIZE, typename T>
   void readBytes(T& v)
   {
-    static_assert(std::is_integral<T>(), "");
+    static_assert(eastl::is_integral<T>(), "");
     static_assert(sizeof(T) == SIZE, "");
     static_cast<Adapter*>(this)->template readInternalValue<sizeof(T)>(
       reinterpret_cast<typename Adapter::TValue*>(&v));
@@ -368,7 +368,7 @@ struct InputAdapterBaseCRTP
   template<size_t SIZE, typename T>
   void readBuffer(T* buf, size_t count)
   {
-    static_assert(std::is_integral<T>(), "");
+    static_assert(eastl::is_integral<T>(), "");
     static_assert(sizeof(T) == SIZE, "");
     static_cast<Adapter*>(this)->readInternalBuffer(
       reinterpret_cast<typename Adapter::TValue*>(buf), sizeof(T) * count);
@@ -379,7 +379,7 @@ struct InputAdapterBaseCRTP
   void readBits(T&, size_t)
   {
     static_assert(
-      std::is_void<T>::value,
+      eastl::is_void<T>::value,
       "Bit-packing is not enabled.\nEnable by call to `enableBitPacking`) or "
       "create Deserializer with bit packing enabled.");
   }
@@ -397,28 +397,28 @@ struct InputAdapterBaseCRTP
 
 private:
   template<typename T>
-  void swapDataBits(T* v, size_t count, std::true_type)
+  void swapDataBits(T* v, size_t count, eastl::true_type)
   {
-    using diff_t = typename std::iterator_traits<T*>::difference_type;
-    std::for_each(v, std::next(v, static_cast<diff_t>(count)), [](T& x) {
+    using diff_t = typename eastl::iterator_traits<T*>::difference_type;
+    eastl::for_each(v, eastl::next(v, static_cast<diff_t>(count)), [](T& x) {
       x = details::swap(x);
     });
   }
 
   template<typename T>
-  void swapDataBits(T*, size_t, std::false_type)
+  void swapDataBits(T*, size_t, eastl::false_type)
   {
     // empty function because no swap is required
   }
 
   template<typename T>
-  void swapDataBits(T& v, std::true_type)
+  void swapDataBits(T& v, eastl::true_type)
   {
     v = details::swap(v);
   }
 
   template<typename T>
-  void swapDataBits(T&, std::false_type)
+  void swapDataBits(T&, eastl::false_type)
   {
     // empty function because no swap is required
   }

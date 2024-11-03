@@ -1,11 +1,33 @@
 #include <bitsery/adapter/buffer.h>
 #include <bitsery/bitsery.h>
-// we'll be using std::array as a buffer type, so include traits for this
+// we'll be using eastl::array as a buffer type, so include traits for this
 #include <bitsery/traits/array.h>
 #include <bitsery/traits/string.h>
 #include <bitsery/traits/vector.h>
 // include extension that will allow to compress our data
 #include <bitsery/ext/value_range.h>
+
+void* __cdecl operator new[](size_t size, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
+void* __cdecl operator new[](size_t size, size_t alignement, size_t offset, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)alignement;
+	(void)offset;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
 
 namespace MyTypes {
 
@@ -17,8 +39,8 @@ struct Vec3
 struct Monster
 {
   Vec3 pos;
-  std::vector<Vec3> path;
-  std::string name;
+  eastl::vector<Vec3> path;
+  eastl::string name;
 };
 
 template<typename S>
@@ -51,7 +73,7 @@ serialize(S& s, Monster& o)
 }
 
 // use fixed-size buffer
-using Buffer = std::array<uint8_t, 10000>;
+using Buffer = eastl::array<uint8_t, 10000>;
 using OutputAdapter = bitsery::OutputBufferAdapter<Buffer>;
 using InputAdapter = bitsery::InputBufferAdapter<Buffer>;
 

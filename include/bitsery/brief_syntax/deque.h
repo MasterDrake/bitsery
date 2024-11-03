@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef BITSERY_BRIEF_SYNTAX_TYPE_STD_DEQUE_H
-#define BITSERY_BRIEF_SYNTAX_TYPE_STD_DEQUE_H
+#ifndef BITSERY_BRIEF_SYNTAX_TYPE_EASTL_DEQUE_H
+#define BITSERY_BRIEF_SYNTAX_TYPE_EASTL_DEQUE_H
 
 #include "../details/brief_syntax_common.h"
 #include "../traits/deque.h"
@@ -29,10 +29,10 @@
 namespace bitsery {
 template<typename S, typename T, typename Allocator>
 void
-serialize(S& s, std::deque<T, Allocator>& obj)
+serialize(S& s, eastl::deque<T, Allocator>& obj)
 {
   brief_syntax::processContainer(s, obj);
 }
 }
 
-#endif // BITSERY_BRIEF_SYNTAX_TYPE_STD_DEQUE_H
+#endif // BITSERY_BRIEF_SYNTAX_TYPE_EASTL_DEQUE_H

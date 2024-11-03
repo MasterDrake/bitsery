@@ -27,73 +27,73 @@
 
 using testing::Eq;
 
-#include <bitsery/ext/std_variant.h>
+#include <bitsery/ext/eastl_variant.h>
 
 template<typename T, size_t N>
 using OverloadValue = bitsery::ext::OverloadValue<T, N>;
 
-TEST(SerializeExtensionStdVariant, UseSerializeFunction)
+TEST(SerializeExtensionEastlVariant, UseSerializeFunction)
 {
 
-  std::variant<MyStruct1, MyStruct2> t1{ MyStruct1{ 978, 15 } };
-  std::variant<MyStruct1, MyStruct2> r1{ MyStruct2{} };
+  eastl::variant<MyStruct1, MyStruct2> t1{ MyStruct1{ 978, 15 } };
+  eastl::variant<MyStruct1, MyStruct2> r1{ MyStruct2{} };
   SerializationContext ctx;
-  ctx.createSerializer().ext(t1, bitsery::ext::StdVariant{});
-  ctx.createDeserializer().ext(r1, bitsery::ext::StdVariant{});
+  ctx.createSerializer().ext(t1, bitsery::ext::EastlVariant{});
+  ctx.createDeserializer().ext(r1, bitsery::ext::EastlVariant{});
   EXPECT_THAT(t1, Eq(r1));
 }
 
-TEST(SerializeExtensionStdVariant,
+TEST(SerializeExtensionEastlVariant,
      WhenTwoIndicesWithSameTypeThenDeserializeCorrectIndex)
 {
 
-  std::variant<MyStruct1, MyStruct2, MyStruct1> t1{ std::in_place_index_t<2>{},
+  eastl::variant<MyStruct1, MyStruct2, MyStruct1> t1{ eastl::in_place_index_t<2>{},
                                                     MyStruct1{ 978, 15 } };
-  std::variant<MyStruct1, MyStruct2, MyStruct1> r1{ MyStruct2{} };
+  eastl::variant<MyStruct1, MyStruct2, MyStruct1> r1{ MyStruct2{} };
   SerializationContext ctx;
-  ctx.createSerializer().ext(t1, bitsery::ext::StdVariant{});
-  ctx.createDeserializer().ext(r1, bitsery::ext::StdVariant{});
+  ctx.createSerializer().ext(t1, bitsery::ext::EastlVariant{});
+  ctx.createDeserializer().ext(r1, bitsery::ext::EastlVariant{});
   EXPECT_THAT(t1, Eq(r1));
 }
 
-TEST(SerializeExtensionStdVariant, ValueTypesCanBeSerializedWithLambda)
+TEST(SerializeExtensionEastlVariant, ValueTypesCanBeSerializedWithLambda)
 {
 
-  std::variant<float, char, MyStruct1> t1{ 5.6f };
-  std::variant<float, char, MyStruct1> r1{ MyStruct1{} };
+  eastl::variant<float, char, MyStruct1> t1{ 5.6f };
+  eastl::variant<float, char, MyStruct1> r1{ MyStruct1{} };
   SerializationContext ctx;
   auto fncFloat = [](auto& s, float& v) { s.value4b(v); };
   auto fncChar = [](auto& s, char& v) { s.value1b(v); };
-  ctx.createSerializer().ext(t1, bitsery::ext::StdVariant{ fncFloat, fncChar });
+  ctx.createSerializer().ext(t1, bitsery::ext::EastlVariant{ fncFloat, fncChar });
   ctx.createDeserializer().ext(r1,
-                               bitsery::ext::StdVariant{ fncFloat, fncChar });
+                               bitsery::ext::EastlVariant{ fncFloat, fncChar });
   EXPECT_THAT(t1, Eq(r1));
 }
 
-TEST(SerializeExtensionStdVariant,
+TEST(SerializeExtensionEastlVariant,
      ValueTypesCanBeSerializedWithLambdaAndOrCallableObject)
 {
-  std::variant<float, char, MyStruct1> t1{ 'Z' };
-  std::variant<float, char, MyStruct1> r1{ MyStruct1{} };
+  eastl::variant<float, char, MyStruct1> t1{ 'Z' };
+  eastl::variant<float, char, MyStruct1> r1{ MyStruct1{} };
   SerializationContext ctx;
   auto fncFloat = [](auto& s, float& v) { s.value4b(v); };
 
   ctx.createSerializer().ext(
-    t1, bitsery::ext::StdVariant{ fncFloat, OverloadValue<char, 1>{} });
+    t1, bitsery::ext::EastlVariant{ fncFloat, OverloadValue<char, 1>{} });
   ctx.createDeserializer().ext(
-    r1, bitsery::ext::StdVariant{ fncFloat, OverloadValue<char, 1>{} });
+    r1, bitsery::ext::EastlVariant{ fncFloat, OverloadValue<char, 1>{} });
   EXPECT_THAT(t1, Eq(r1));
 }
 
-TEST(SerializeExtensionStdVariant, CanOverloadDefaultSerializationFunction)
+TEST(SerializeExtensionEastlVariant, CanOverloadDefaultSerializationFunction)
 {
-  std::variant<MyStruct2, MyStruct1, int32_t> t1{ MyStruct1{ 5, 9 } };
-  std::variant<MyStruct2, MyStruct1, int32_t> r1{ MyStruct1{} };
+  eastl::variant<MyStruct2, MyStruct1, int32_t> t1{ MyStruct1{ 5, 9 } };
+  eastl::variant<MyStruct2, MyStruct1, int32_t> r1{ MyStruct1{} };
   SerializationContext ctx;
-  auto exec = [](auto& s, std::variant<MyStruct2, MyStruct1, int32_t>& o) {
+  auto exec = [](auto& s, eastl::variant<MyStruct2, MyStruct1, int32_t>& o) {
     using S = decltype(s);
     s.ext(o,
-          bitsery::ext::StdVariant{ [](S& s, MyStruct1& v) {
+          bitsery::ext::EastlVariant{ [](S& s, MyStruct1& v) {
                                      s.value4b(v.i1);
                                      // do not serialize other element, it
                                      // should be 0 (default)
@@ -103,7 +103,7 @@ TEST(SerializeExtensionStdVariant, CanOverloadDefaultSerializationFunction)
 
   ctx.createSerializer().object(t1, exec);
   ctx.createDeserializer().object(r1, exec);
-  EXPECT_THAT(std::get<1>(r1).i2, Eq(0));
+  EXPECT_THAT(eastl::get<1>(r1).i2, Eq(0));
 }
 
 struct NonDefaultConstructable
@@ -127,19 +127,19 @@ private:
     : _x{ 0.0f } {};
 };
 
-TEST(SerializeExtensionStdVariant, CanUseNonDefaultConstructableTypes)
+TEST(SerializeExtensionEastlVariant, CanUseNonDefaultConstructableTypes)
 {
-  std::variant<NonDefaultConstructable, MyStruct1, int32_t> t1{
+  eastl::variant<NonDefaultConstructable, MyStruct1, int32_t> t1{
     NonDefaultConstructable{ 123.456f }
   };
-  std::variant<NonDefaultConstructable, MyStruct1, int32_t> r1{ MyStruct1{} };
+  eastl::variant<NonDefaultConstructable, MyStruct1, int32_t> r1{ MyStruct1{} };
   SerializationContext ctx;
 
   auto exec = [](auto& s,
-                 std::variant<NonDefaultConstructable, MyStruct1, int32_t>& o) {
+                 eastl::variant<NonDefaultConstructable, MyStruct1, int32_t>& o) {
     using S = decltype(s);
     s.ext(o,
-          bitsery::ext::StdVariant{
+          bitsery::ext::EastlVariant{
             [](S& s, NonDefaultConstructable& v) { s.value4b(v._x); },
             OverloadValue<int32_t, 4>{} });
   };
@@ -150,16 +150,16 @@ TEST(SerializeExtensionStdVariant, CanUseNonDefaultConstructableTypes)
   EXPECT_THAT(t1, Eq(r1));
 }
 
-TEST(SerializeExtensionStdVariant, CorrectlyHandleMonoState)
+TEST(SerializeExtensionEastlVariant, CorrectlyHandleMonoState)
 {
-  std::variant<std::monostate, NonDefaultConstructable, MyStruct1> t1{};
-  std::variant<std::monostate, NonDefaultConstructable, MyStruct1> r1{};
+  eastl::variant<eastl::monostate, NonDefaultConstructable, MyStruct1> t1{};
+  eastl::variant<eastl::monostate, NonDefaultConstructable, MyStruct1> r1{};
   SerializationContext ctx;
 
   auto exec = [](auto& s, auto& o) {
     using S = decltype(s);
     s.ext(o,
-          bitsery::ext::StdVariant{
+          bitsery::ext::EastlVariant{
             [](S& s, NonDefaultConstructable& v) { s.value4b(v._x); },
           });
   };
@@ -168,17 +168,17 @@ TEST(SerializeExtensionStdVariant, CorrectlyHandleMonoState)
   ctx.createDeserializer().object(r1, exec);
 
   EXPECT_THAT(t1, Eq(r1));
-  std::variant<std::monostate> t2{};
-  std::variant<std::monostate> r2{};
+  eastl::variant<eastl::monostate> t2{};
+  eastl::variant<eastl::monostate> r2{};
   SerializationContext ctx1;
-  ctx1.createSerializer().ext(t2, bitsery::ext::StdVariant{});
-  ctx1.createDeserializer().ext(r2, bitsery::ext::StdVariant{});
+  ctx1.createSerializer().ext(t2, bitsery::ext::EastlVariant{});
+  ctx1.createDeserializer().ext(r2, bitsery::ext::EastlVariant{});
   EXPECT_THAT(t2, Eq(r2));
 }
 
 #elif defined(_MSC_VER)
 #pragma message(                                                               \
-  "C++17 and /Zc:__cplusplus option is required to enable std::variant tests")
+  "C++17 and /Zc:__cplusplus option is required to enable eastl::variant tests")
 #else
-#pragma message("C++17 is required to enable std::variant tests")
+#pragma message("C++17 is required to enable eastl::variant tests")
 #endif

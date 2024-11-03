@@ -25,7 +25,7 @@
 
 #include "../traits/core/traits.h"
 #include "serialization_common.h"
-#include <limits>
+#include <EASTL/numeric_limits.h>
 
 namespace bitsery {
 namespace brief_syntax {
@@ -36,14 +36,14 @@ namespace brief_syntax {
 
 template<typename S,
          typename T,
-         typename std::enable_if<
+         typename eastl::enable_if<
            details::IsFundamentalType<
              typename traits::ContainerTraits<T>::TValue>::value &&
            traits::ContainerTraits<T>::isResizable>::type* = nullptr>
 void
 processContainer(S& s,
                  T& c,
-                 size_t maxSize = std::numeric_limits<size_t>::max())
+                 size_t maxSize = eastl::numeric_limits<size_t>::max())
 {
   using TValue = typename traits::ContainerTraits<T>::TValue;
   s.template container<sizeof(TValue)>(c, maxSize);
@@ -51,21 +51,21 @@ processContainer(S& s,
 
 template<typename S,
          typename T,
-         typename std::enable_if<
+         typename eastl::enable_if<
            !details::IsFundamentalType<
              typename traits::ContainerTraits<T>::TValue>::value &&
            traits::ContainerTraits<T>::isResizable>::type* = nullptr>
 void
 processContainer(S& s,
                  T& c,
-                 size_t maxSize = std::numeric_limits<size_t>::max())
+                 size_t maxSize = eastl::numeric_limits<size_t>::max())
 {
   s.container(c, maxSize);
 }
 
 template<typename S,
          typename T,
-         typename std::enable_if<
+         typename eastl::enable_if<
            details::IsFundamentalType<
              typename traits::ContainerTraits<T>::TValue>::value &&
            !traits::ContainerTraits<T>::isResizable>::type* = nullptr>
@@ -78,7 +78,7 @@ processContainer(S& s, T& c)
 
 template<typename S,
          typename T,
-         typename std::enable_if<
+         typename eastl::enable_if<
            !details::IsFundamentalType<
              typename traits::ContainerTraits<T>::TValue>::value &&
            !traits::ContainerTraits<T>::isResizable>::type* = nullptr>
@@ -92,10 +92,10 @@ processContainer(S& s, T& c)
 
 template<typename S,
          typename T,
-         typename std::enable_if<
+         typename eastl::enable_if<
            traits::ContainerTraits<T>::isResizable>::type* = nullptr>
 void
-processText(S& s, T& c, size_t maxSize = std::numeric_limits<size_t>::max())
+processText(S& s, T& c, size_t maxSize = eastl::numeric_limits<size_t>::max())
 {
   using TValue = typename traits::ContainerTraits<T>::TValue;
   s.template text<sizeof(TValue)>(c, maxSize);
@@ -103,7 +103,7 @@ processText(S& s, T& c, size_t maxSize = std::numeric_limits<size_t>::max())
 
 template<typename S,
          typename T,
-         typename std::enable_if<
+         typename eastl::enable_if<
            !traits::ContainerTraits<T>::isResizable>::type* = nullptr>
 void
 processText(S& s, T& c)
@@ -154,7 +154,7 @@ struct MaxSize : public ModFnc
 // contiguous container
 template<typename S, typename T>
 void
-processMaxSize(S& s, T& data, size_t maxSize, std::true_type)
+processMaxSize(S& s, T& data, size_t maxSize, eastl::true_type)
 {
   processContainer(s, data, maxSize);
 }
@@ -162,7 +162,7 @@ processMaxSize(S& s, T& data, size_t maxSize, std::true_type)
 // overload for const T&
 template<typename S, typename T>
 void
-processMaxSize(S& s, const T& data, size_t maxSize, std::true_type)
+processMaxSize(S& s, const T& data, size_t maxSize, eastl::true_type)
 {
   processContainer(s, const_cast<T&>(data), maxSize);
 }
@@ -170,7 +170,7 @@ processMaxSize(S& s, const T& data, size_t maxSize, std::true_type)
 // try to call serialize overload with maxsize, extensions use this technique
 template<typename S, typename T>
 void
-processMaxSize(S& s, T& data, size_t maxSize, std::false_type)
+processMaxSize(S& s, T& data, size_t maxSize, eastl::false_type)
 {
   serialize(s, data, maxSize);
 }
@@ -178,7 +178,7 @@ processMaxSize(S& s, T& data, size_t maxSize, std::false_type)
 // overload for const T&
 template<typename S, typename T>
 void
-processMaxSize(S& s, const T& data, size_t maxSize, std::false_type)
+processMaxSize(S& s, const T& data, size_t maxSize, eastl::false_type)
 {
   serialize(s, const_cast<T&>(data), maxSize);
 }
@@ -191,7 +191,7 @@ serialize(S& s, const MaxSize<T>& ms)
     s,
     ms.data,
     ms.maxSize,
-    details::IsContainerTraitsDefined<typename std::decay<T>::type>{});
+    details::IsContainerTraitsDefined<typename eastl::decay<T>::type>{});
 }
 
 }

@@ -84,10 +84,10 @@ public:
     if (_alignBeforeData)
       d.adapter().align();
     if (index) {
-      using TDiff = typename std::iterator_traits<decltype(std::begin(
+      using TDiff = typename eastl::iterator_traits<decltype(eastl::begin(
         _values))>::difference_type;
       obj = static_cast<T>(
-        *std::next(std::begin(_values), static_cast<TDiff>(index - 1)));
+        *eastl::next(eastl::begin(_values), static_cast<TDiff>(index - 1)));
     } else
       fnc(d, obj);
   }

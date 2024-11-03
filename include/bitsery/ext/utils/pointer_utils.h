@@ -39,9 +39,9 @@ enum class PointerType : uint8_t
 // Owner - only ONE owner is responsible for this pointers creation/destruction
 // SharedOwner, SharedObserver - MANY shared owners is responsible for pointer
 // creation/destruction requires additional context to manage shared owners
-// themselves. SharedOwner actually manages life time e.g. std::shared_ptr
+// themselves. SharedOwner actually manages life time e.g. eastl::shared_ptr
 // SharedObserver do not manage life time of the pointer, but can observe shared
-// state .e.. std::weak_ptr and differently from Observer, creates new object if
+// state .e.. eastl::weak_ptr and differently from Observer, creates new object if
 // necessary and saves to shared state
 enum class PointerOwnershipType : uint8_t
 {
@@ -125,7 +125,7 @@ struct PLCInfoDeserializer : PLCInfo
     : PLCInfo(ownershipType_)
     , ownerPtr{ ptr }
     , memResource{ memResource_ }
-    , observersList{ StdPolyAlloc<std::reference_wrapper<void*>>{
+    , observersList{ StdPolyAlloc<eastl::reference_wrapper<void*>>{
         memResource_ } } {};
 
   // need to override these explicitly because we have pointer member
@@ -158,10 +158,10 @@ struct PLCInfoDeserializer : PLCInfo
 
   void* ownerPtr;
   MemResourceBase* memResource;
-  std::vector<std::reference_wrapper<void*>,
-              StdPolyAlloc<std::reference_wrapper<void*>>>
+  eastl::vector<eastl::reference_wrapper<void*>,
+              StdPolyAlloc<eastl::reference_wrapper<void*>>>
     observersList;
-  std::unique_ptr<PointerSharedStateBase, PointerSharedStateDeleter>
+  eastl::unique_ptr<PointerSharedStateBase, PointerSharedStateDeleter>
     sharedState{};
 };
 
@@ -171,7 +171,7 @@ public:
   explicit PointerLinkingContextSerialization(
     MemResourceBase* memResource = nullptr)
     : _currId{ 0 }
-    , _ptrMap{ StdPolyAlloc<std::pair<const void* const, PLCInfoSerializer>>{
+    , _ptrMap{ StdPolyAlloc<eastl::pair<const void* const, PLCInfoSerializer>>{
         memResource } }
   {
   }
@@ -207,10 +207,10 @@ public:
   // we cannot serialize pointers, if we haven't serialized objects themselves
   bool isPointerSerializationValid() const
   {
-    return std::all_of(
+    return eastl::all_of(
       _ptrMap.begin(),
       _ptrMap.end(),
-      [](const std::pair<const void*, PLCInfoSerializer>& p) {
+      [](const eastl::pair<const void*, PLCInfoSerializer>& p) {
         return p.second.ownershipType == PointerOwnershipType::SharedOwner ||
                p.second.ownershipType == PointerOwnershipType::Owner;
       });
@@ -218,12 +218,12 @@ public:
 
 private:
   size_t _currId;
-  std::unordered_map<
+  eastl::unordered_map<
     const void*,
     PLCInfoSerializer,
-    std::hash<const void*>,
-    std::equal_to<const void*>,
-    StdPolyAlloc<std::pair<const void* const, PLCInfoSerializer>>>
+    eastl::hash<const void*>,
+    eastl::equal_to<const void*>,
+    StdPolyAlloc<eastl::pair<const void* const, PLCInfoSerializer>>>
     _ptrMap;
 };
 
@@ -233,7 +233,7 @@ public:
   explicit PointerLinkingContextDeserialization(
     MemResourceBase* memResource = nullptr)
     : _memResource{ memResource }
-    , _idMap{ StdPolyAlloc<std::pair<const size_t, PLCInfoDeserializer>>{
+    , _idMap{ StdPolyAlloc<eastl::pair<const size_t, PLCInfoDeserializer>>{
         memResource } }
   {
   }
@@ -271,10 +271,10 @@ public:
   // valid, when all pointers has owners
   bool isPointerDeserializationValid() const
   {
-    return std::all_of(
+    return eastl::all_of(
       _idMap.begin(),
       _idMap.end(),
-      [](const std::pair<const size_t, PLCInfoDeserializer>& p) {
+      [](const eastl::pair<const size_t, PLCInfoDeserializer>& p) {
         return p.second.ownershipType == PointerOwnershipType::SharedOwner ||
                p.second.ownershipType == PointerOwnershipType::Owner;
       });
@@ -289,11 +289,11 @@ public:
 
 private:
   MemResourceBase* _memResource;
-  std::unordered_map<size_t,
+  eastl::unordered_map<size_t,
                      PLCInfoDeserializer,
-                     std::hash<size_t>,
-                     std::equal_to<size_t>,
-                     StdPolyAlloc<std::pair<const size_t, PLCInfoDeserializer>>>
+                     eastl::hash<size_t>,
+                     eastl::equal_to<size_t>,
+                     StdPolyAlloc<eastl::pair<const size_t, PLCInfoDeserializer>>>
     _idMap;
 };
 }
@@ -326,14 +326,14 @@ public:
   // helper types
   template<typename T>
   struct IsPolymorphic
-    : std::integral_constant<
+    : eastl::integral_constant<
         bool,
         RTTI::template isPolymorphic<typename TPtrManager<T>::TElement>()>
   {
   };
 
   template<PointerOwnershipType Value>
-  using OwnershipType = std::integral_constant<PointerOwnershipType, Value>;
+  using OwnershipType = eastl::integral_constant<PointerOwnershipType, Value>;
 
   explicit PointerObjectExtensionBase(
     PointerType ptrType = PointerType::Nullable,
@@ -358,7 +358,7 @@ public:
       details::writeSize(ser.adapter(), ptrInfo.id);
       if (TPtrManager<T>::getOwnership() != PointerOwnershipType::Observer) {
         if (!ptrInfo.isSharedProcessed)
-          serializeImpl(ser, ptr, std::forward<Fnc>(fnc), IsPolymorphic<T>{});
+          serializeImpl(ser, ptr, eastl::forward<Fnc>(fnc), IsPolymorphic<T>{});
       }
     } else {
       assert(_ptrType == PointerType::Nullable);
@@ -370,7 +370,7 @@ public:
   void deserialize(Des& des, T& obj, Fnc&& fnc) const
   {
     size_t id{};
-    details::readSize(des.adapter(), id, 0, std::false_type{});
+    details::readSize(des.adapter(), id, 0, eastl::false_type{});
     auto& ctx = des.template context<
       pointer_utils::PointerLinkingContextDeserialization>();
     auto prevResource = ctx.getMemResource();
@@ -386,7 +386,7 @@ public:
                       ptrInfo,
                       des,
                       obj,
-                      std::forward<Fnc>(fnc),
+                      eastl::forward<Fnc>(fnc),
                       IsPolymorphic<T>{},
                       OwnershipType<TPtrManager<T>::getOwnership()>{});
     } else {
@@ -407,7 +407,7 @@ private:
   void destroyPtr(MemResourceBase* memResource,
                   Des& des,
                   TObj& obj,
-                  std::true_type /*polymorphic*/) const
+                  eastl::true_type /*polymorphic*/) const
   {
     const auto& ctx = des.template context<TPolymorphicContext<RTTI>>();
     auto ptr = TPtrManager<TObj>::getPtr(obj);
@@ -419,7 +419,7 @@ private:
   void destroyPtr(MemResourceBase* memResource,
                   Des&,
                   TObj& obj,
-                  std::false_type /*polymorphic*/) const
+                  eastl::false_type /*polymorphic*/) const
   {
     TPtrManager<TObj>::destroy(
       obj,
@@ -438,14 +438,14 @@ private:
   }
 
   template<typename Ser, typename TPtr, typename Fnc>
-  void serializeImpl(Ser& ser, TPtr& ptr, Fnc&&, std::true_type) const
+  void serializeImpl(Ser& ser, TPtr& ptr, Fnc&&, eastl::true_type) const
   {
     const auto& ctx = ser.template context<TPolymorphicContext<RTTI>>();
     ctx.serialize(ser, *ptr);
   }
 
   template<typename Ser, typename TPtr, typename Fnc>
-  void serializeImpl(Ser& ser, TPtr& ptr, Fnc&& fnc, std::false_type) const
+  void serializeImpl(Ser& ser, TPtr& ptr, Fnc&& fnc, eastl::false_type) const
   {
     fnc(ser, *ptr);
   }
@@ -456,7 +456,7 @@ private:
                        Des& des,
                        T& obj,
                        Fnc&&,
-                       std::true_type,
+                       eastl::true_type,
                        OwnershipType<PointerOwnershipType::Owner>) const
   {
     const auto& ctx = des.template context<TPolymorphicContext<RTTI>>();
@@ -464,12 +464,12 @@ private:
       des,
       TPtrManager<T>::getPtr(obj),
       [&obj,
-       memResource](const std::shared_ptr<PolymorphicHandlerBase>& handler) {
+       memResource](const eastl::shared_ptr<PolymorphicHandlerBase>& handler) {
         TPtrManager<T>::createPolymorphic(obj, memResource, handler);
         return TPtrManager<T>::getPtr(obj);
       },
       [&obj,
-       memResource](const std::shared_ptr<PolymorphicHandlerBase>& handler) {
+       memResource](const eastl::shared_ptr<PolymorphicHandlerBase>& handler) {
         TPtrManager<T>::destroyPolymorphic(obj, memResource, handler);
       });
     ptrInfo.processOwner(TPtrManager<T>::getPtr(obj));
@@ -481,7 +481,7 @@ private:
                        Des& des,
                        T& obj,
                        Fnc&& fnc,
-                       std::false_type,
+                       eastl::false_type,
                        OwnershipType<PointerOwnershipType::Owner>) const
   {
     auto ptr = TPtrManager<T>::getPtr(obj);
@@ -504,7 +504,7 @@ private:
                        Des& des,
                        T& obj,
                        Fnc&&,
-                       std::true_type,
+                       eastl::true_type,
                        OwnershipType<PointerOwnershipType::SharedOwner>) const
   {
     if (!ptrInfo.sharedState) {
@@ -513,13 +513,13 @@ private:
         des,
         TPtrManager<T>::getPtr(obj),
         [&obj, &ptrInfo, memResource, this](
-          const std::shared_ptr<PolymorphicHandlerBase>& handler) {
+          const eastl::shared_ptr<PolymorphicHandlerBase>& handler) {
           TPtrManager<T>::createSharedPolymorphic(
             createAndGetSharedStateObj<T>(ptrInfo), obj, memResource, handler);
           return TPtrManager<T>::getPtr(obj);
         },
         [&obj,
-         memResource](const std::shared_ptr<PolymorphicHandlerBase>& handler) {
+         memResource](const eastl::shared_ptr<PolymorphicHandlerBase>& handler) {
           TPtrManager<T>::destroyPolymorphic(obj, memResource, handler);
         });
       if (!ptrInfo.sharedState)
@@ -536,7 +536,7 @@ private:
                        Des& des,
                        T& obj,
                        Fnc&& fnc,
-                       std::false_type,
+                       eastl::false_type,
                        OwnershipType<PointerOwnershipType::SharedOwner>) const
   {
     if (!ptrInfo.sharedState) {
@@ -599,7 +599,7 @@ private:
     auto* ptr = alloc.allocate(1);
     auto* obj = new (ptr) TSharedState{};
     info.sharedState =
-      std::unique_ptr<PointerSharedStateBase, PointerSharedStateDeleter>(
+      eastl::unique_ptr<PointerSharedStateBase, PointerSharedStateDeleter>(
         obj, PointerSharedStateDeleter{ info.memResource });
     return *obj;
   }

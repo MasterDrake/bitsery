@@ -20,18 +20,40 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include <bitsery/ext/std_set.h>
-#include <set>
+#include <bitsery/ext/eastl_set.h>
+#include <EASTL/set.h>
 
 #include "serialization_test_utils.h"
 #include <gmock/gmock.h>
 
-using StdSet = bitsery::ext::StdSet;
+void* __cdecl operator new[](size_t size, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
+void* __cdecl operator new[](size_t size, size_t alignement, size_t offset, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)alignement;
+	(void)offset;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
+using EastlSet = bitsery::ext::EastlSet;
 
 using testing::Eq;
 
 template<typename T>
-class SerializeExtensionStdSet : public testing::Test
+class SerializeExtensionEastlSet : public testing::Test
 {
 public:
   using TContainer = T;
@@ -39,44 +61,44 @@ public:
   TContainer res{ 78, 74, 154, 8 };
 };
 
-using SerializeExtensionStdSetTypes =
-  ::testing::Types<std::unordered_set<int32_t>,
-                   std::unordered_multiset<int32_t>,
-                   std::set<int32_t>,
-                   std::multiset<int32_t>>;
+using SerializeExtensionEastlSetTypes =
+  ::testing::Types<eastl::unordered_set<int32_t>,
+                   eastl::unordered_multiset<int32_t>,
+                   eastl::set<int32_t>,
+                   eastl::multiset<int32_t>>;
 
-TYPED_TEST_SUITE(SerializeExtensionStdSet, SerializeExtensionStdSetTypes, );
+TYPED_TEST_SUITE(SerializeExtensionEastlSet, SerializeExtensionEastlSetTypes, );
 
-TYPED_TEST(SerializeExtensionStdSet, ValuesSyntaxDifferentSetTypes)
+TYPED_TEST(SerializeExtensionEastlSet, ValuesSyntaxDifferentSetTypes)
 {
   SerializationContext ctx1;
-  ctx1.createSerializer().ext4b(this->src, StdSet{ 10 });
-  ctx1.createDeserializer().ext4b(this->res, StdSet{ 10 });
+  ctx1.createSerializer().ext4b(this->src, EastlSet{ 10 });
+  ctx1.createDeserializer().ext4b(this->res, EastlSet{ 10 });
   EXPECT_THAT(this->res, Eq(this->src));
 }
 
-TEST(SerializeExtensionStdSet, ObjectSyntax)
+TEST(SerializeExtensionEastlSet, ObjectSyntax)
 {
   SerializationContext ctx1;
-  std::set<MyStruct1> t1{ MyStruct1{ 874, 456 },
+  eastl::set<MyStruct1> t1{ MyStruct1{ 874, 456 },
                           MyStruct1{ -874, -456 },
                           MyStruct1{ 4894, 0 } };
-  std::set<MyStruct1> r1{};
-  ctx1.createSerializer().ext(t1, StdSet{ 10 });
-  ctx1.createDeserializer().ext(r1, StdSet{ 10 });
+  eastl::set<MyStruct1> r1{};
+  ctx1.createSerializer().ext(t1, EastlSet{ 10 });
+  ctx1.createDeserializer().ext(r1, EastlSet{ 10 });
   EXPECT_THAT(r1, Eq(t1));
 }
 
-TEST(SerializeExtensionStdSet, FunctionSyntax)
+TEST(SerializeExtensionEastlSet, FunctionSyntax)
 {
   SerializationContext ctx1;
-  std::unordered_multiset<int32_t> t1{ 54, -484, 841, 79 };
-  std::unordered_multiset<int32_t> r1{ 74, 878, 15, 16, -7, 5, -4, 8, 7 };
+  eastl::unordered_multiset<int32_t> t1{ 54, -484, 841, 79 };
+  eastl::unordered_multiset<int32_t> r1{ 74, 878, 15, 16, -7, 5, -4, 8, 7 };
   auto& ser = ctx1.createSerializer();
   ser.ext(
-    t1, StdSet{ 10 }, [](decltype(ser)& ser, int32_t& v) { ser.value4b(v); });
+    t1, EastlSet{ 10 }, [](decltype(ser)& ser, int32_t& v) { ser.value4b(v); });
   auto& des = ctx1.createDeserializer();
   des.ext(
-    r1, StdSet{ 10 }, [](decltype(des)& des, int32_t& v) { des.value4b(v); });
+    r1, EastlSet{ 10 }, [](decltype(des)& des, int32_t& v) { des.value4b(v); });
   EXPECT_THAT(r1, Eq(t1));
 }

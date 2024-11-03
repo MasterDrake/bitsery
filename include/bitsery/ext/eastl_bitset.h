@@ -20,21 +20,21 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef BITSERY_EXT_STD_BITSET_H
-#define BITSERY_EXT_STD_BITSET_H
+#ifndef BITSERY_EXT_EASTL_BITSET_H
+#define BITSERY_EXT_EASTL_BITSET_H
 
 #include "../traits/core/traits.h"
-#include <bitset>
+#include <EASTL/bitset.h>
 #include <cstdint>
 
 namespace bitsery {
 namespace ext {
 
-class StdBitset
+class EastlBitset
 {
 public:
   template<typename Ser, typename Fnc, size_t N>
-  void serialize(Ser& ser, const std::bitset<N>& obj, Fnc&&) const
+  void serialize(Ser& ser, const eastl::bitset<N>& obj, Fnc&&) const
   {
     constexpr size_t BYTES = N / 8;
     constexpr size_t LEFTOVER = N % 8;
@@ -61,12 +61,12 @@ public:
                             obj,
                             N - LEFTOVER,
                             N,
-                            std::is_same<Ser, typename Ser::BPEnabledType>{});
+                            eastl::is_same<Ser, typename Ser::BPEnabledType>{});
     }
   }
 
   template<typename Des, typename Fnc, size_t N>
-  void deserialize(Des& des, std::bitset<N>& obj, Fnc&&) const
+  void deserialize(Des& des, eastl::bitset<N>& obj, Fnc&&) const
   {
     constexpr size_t BYTES = N / 8;
     constexpr size_t LEFTOVER = N % 8;
@@ -88,17 +88,17 @@ public:
                               obj,
                               N - LEFTOVER,
                               N,
-                              std::is_same<Des, typename Des::BPEnabledType>{});
+                              eastl::is_same<Des, typename Des::BPEnabledType>{});
     }
   }
 
 private:
   template<typename Writer, size_t N>
   void serializeLeftoverImpl(Writer& w,
-                             const std::bitset<N>& obj,
+                             const eastl::bitset<N>& obj,
                              size_t from,
                              size_t to,
-                             std::integral_constant<bool, false>) const
+                             eastl::integral_constant<bool, false>) const
   {
     auto data = 0;
     for (auto i = from; i < to; ++i) {
@@ -109,10 +109,10 @@ private:
 
   template<typename Writer, size_t N>
   void serializeLeftoverImpl(Writer& w,
-                             const std::bitset<N>& obj,
+                             const eastl::bitset<N>& obj,
                              size_t from,
                              size_t to,
-                             std::integral_constant<bool, true>) const
+                             eastl::integral_constant<bool, true>) const
   {
     for (auto i = from; i < to; ++i) {
       w.writeBits(obj[i] ? 1u : 0u, 1);
@@ -121,10 +121,10 @@ private:
 
   template<typename Reader, size_t N>
   void deserializeLeftoverImpl(Reader& r,
-                               std::bitset<N>& obj,
+                               eastl::bitset<N>& obj,
                                size_t from,
                                size_t to,
-                               std::integral_constant<bool, false>) const
+                               eastl::integral_constant<bool, false>) const
   {
     uint8_t data = 0u;
     r.template readBytes<1>(data);
@@ -135,10 +135,10 @@ private:
 
   template<typename Reader, size_t N>
   void deserializeLeftoverImpl(Reader& r,
-                               std::bitset<N>& obj,
+                               eastl::bitset<N>& obj,
                                size_t from,
                                size_t to,
-                               std::integral_constant<bool, true>) const
+                               eastl::integral_constant<bool, true>) const
   {
     for (auto i = from; i < to; ++i) {
       uint8_t res = 0u;
@@ -151,7 +151,7 @@ private:
 
 namespace traits {
 template<size_t N>
-struct ExtensionTraits<ext::StdBitset, std::bitset<N>>
+struct ExtensionTraits<ext::EastlBitset, eastl::bitset<N>>
 {
   using TValue = void;
   static constexpr bool SupportValueOverload = false;
@@ -161,4 +161,4 @@ struct ExtensionTraits<ext::StdBitset, std::bitset<N>>
 }
 }
 
-#endif // BITSERY_EXT_STD_BITSET_H
+#endif // BITSERY_EXT_EASTL_BITSET_H

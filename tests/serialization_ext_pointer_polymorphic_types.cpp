@@ -26,6 +26,28 @@
 #include "serialization_test_utils.h"
 #include <gmock/gmock.h>
 
+void* __cdecl operator new[](size_t size, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
+void* __cdecl operator new[](size_t size, size_t alignement, size_t offset, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)alignement;
+	(void)offset;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
 using bitsery::ext::BaseClass;
 using bitsery::ext::VirtualBaseClass;
 
@@ -40,7 +62,7 @@ using bitsery::ext::ReferencedByPointer;
 
 using testing::Eq;
 
-using TContext = std::tuple<PointerLinkingContext,
+using TContext = eastl::tuple<PointerLinkingContext,
                             InheritanceContext,
                             PolymorphicContext<StandardRTTI>>;
 using SerContext = BasicSerializationContext<TContext>;
@@ -175,9 +197,9 @@ public:
   typename SerContext::TSerializer& createSerializer()
   {
     auto& res = sctx.createSerializer(plctx);
-    std::get<2>(plctx).clear();
+    eastl::get<2>(plctx).clear();
     // bind serializer with classes
-    std::get<2>(plctx).registerBasesList<SerContext::TSerializer>(
+    eastl::get<2>(plctx).registerBasesList<SerContext::TSerializer>(
       bitsery::ext::PolymorphicClassesList<Base>{});
     return res;
   }
@@ -185,14 +207,14 @@ public:
   typename SerContext::TDeserializer& createDeserializer()
   {
     auto& res = sctx.createDeserializer(plctx);
-    std::get<2>(plctx).clear();
+    eastl::get<2>(plctx).clear();
     // bind deserializer with classes
-    std::get<2>(plctx).registerBasesList<SerContext::TDeserializer>(
+    eastl::get<2>(plctx).registerBasesList<SerContext::TDeserializer>(
       bitsery::ext::PolymorphicClassesList<Base>{});
     return res;
   }
 
-  bool isPointerContextValid() { return std::get<0>(plctx).isValid(); }
+  bool isPointerContextValid() { return eastl::get<0>(plctx).isValid(); }
 
   virtual void TearDown() override { EXPECT_TRUE(isPointerContextValid()); }
 };
@@ -365,7 +387,7 @@ TEST_F(SerializeExtensionPointerPolymorphicTypes,
     nullptr; // this class will be registered, but it doesn't have relationships
              // specified via PolymorphicBaseClass
   auto& des = sctx.createDeserializer(plctx);
-  auto& pc = std::get<2>(plctx);
+  auto& pc = eastl::get<2>(plctx);
   pc.clear();
   pc.registerBasesList<SerContext::TDeserializer>(
     bitsery::ext::PolymorphicClassesList<BaseClone>{});

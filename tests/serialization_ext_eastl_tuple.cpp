@@ -23,36 +23,58 @@
 #include "serialization_test_utils.h"
 #include <gmock/gmock.h>
 
+void* __cdecl operator new[](size_t size, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
+void* __cdecl operator new[](size_t size, size_t alignement, size_t offset, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)alignement;
+	(void)offset;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
 using testing::Eq;
 
 #if __cplusplus > 201402L
 
-#include <bitsery/ext/std_tuple.h>
+#include <bitsery/ext/eastl_tuple.h>
 
 template<typename T, size_t N>
 using OverloadValue = bitsery::ext::OverloadValue<T, N>;
 
-TEST(SerializeExtensionStdTuple, UseDefaultSerializeFunction)
+TEST(SerializeExtensionEastlTuple, UseDefaultSerializeFunction)
 {
-  std::tuple<MyStruct1, MyStruct2> t1{
+  eastl::tuple<MyStruct1, MyStruct2> t1{
     MyStruct1{ -789, 45 }, MyStruct2{ MyStruct2::MyEnum::V3, MyStruct1{} }
   };
-  std::tuple<MyStruct1, MyStruct2> r1{};
+  eastl::tuple<MyStruct1, MyStruct2> r1{};
   SerializationContext ctx;
-  ctx.createSerializer().ext(t1, bitsery::ext::StdTuple{});
-  ctx.createDeserializer().ext(r1, bitsery::ext::StdTuple{});
+  ctx.createSerializer().ext(t1, bitsery::ext::EastlTuple{});
+  ctx.createDeserializer().ext(r1, bitsery::ext::EastlTuple{});
   EXPECT_THAT(t1, Eq(r1));
 }
 
-TEST(SerializeExtensionStdTuple,
+TEST(SerializeExtensionEastlTuple,
      ValueTypesCanBeSerializedWithLambdaAndOrCallableObject)
 {
-  std::tuple<float, int32_t> t1{ 123.456f, -898754656 };
-  std::tuple<float, int32_t> r1{};
+  eastl::tuple<float, int32_t> t1{ 123.456f, -898754656 };
+  eastl::tuple<float, int32_t> r1{};
   SerializationContext ctx;
   auto exec = [](auto& s, auto& o) {
     s.ext(o,
-          bitsery::ext::StdTuple{ [](auto& s1, float& o1) { s1.value4b(o1); },
+          bitsery::ext::EastlTuple{ [](auto& s1, float& o1) { s1.value4b(o1); },
                                   OverloadValue<int32_t, 4>{} });
   };
   ctx.createSerializer().object(t1, exec);
@@ -60,16 +82,16 @@ TEST(SerializeExtensionStdTuple,
   EXPECT_THAT(t1, Eq(r1));
 }
 
-TEST(SerializeExtensionStdTuple, CanOverloadDefaultSerializeFunction)
+TEST(SerializeExtensionEastlTuple, CanOverloadDefaultSerializeFunction)
 {
-  std::tuple<MyStruct1, MyStruct2> t1{
+  eastl::tuple<MyStruct1, MyStruct2> t1{
     MyStruct1{ -789, 45 }, MyStruct2{ MyStruct2::MyEnum::V3, MyStruct1{} }
   };
-  std::tuple<MyStruct1, MyStruct2> r1{};
+  eastl::tuple<MyStruct1, MyStruct2> r1{};
   SerializationContext ctx;
   auto exec = [](auto& s, auto& o) {
     s.ext(o,
-          bitsery::ext::StdTuple{
+          bitsery::ext::EastlTuple{
             [](auto& s1, MyStruct1& o1) {
               s1.value4b(o1.i1);
               // do not serialize other element, it should be 0 (default)
@@ -78,18 +100,18 @@ TEST(SerializeExtensionStdTuple, CanOverloadDefaultSerializeFunction)
   };
   ctx.createSerializer().object(t1, exec);
   ctx.createDeserializer().object(r1, exec);
-  EXPECT_THAT(std::get<1>(t1), Eq(std::get<1>(r1)));
-  EXPECT_THAT(std::get<0>(t1).i1, Eq(std::get<0>(r1).i1));
-  EXPECT_THAT(std::get<0>(t1).i2, ::testing::Ne(std::get<0>(r1).i2));
+  EXPECT_THAT(eastl::get<1>(t1), Eq(eastl::get<1>(r1)));
+  EXPECT_THAT(eastl::get<0>(t1).i1, Eq(eastl::get<0>(r1).i1));
+  EXPECT_THAT(eastl::get<0>(t1).i2, ::testing::Ne(eastl::get<0>(r1).i2));
 }
 
-TEST(SerializeExtensionStdTuple, EmptyTuple)
+TEST(SerializeExtensionEastlTuple, EmptyTuple)
 {
-  std::tuple<> t1{};
-  std::tuple<> r1{};
+  eastl::tuple<> t1{};
+  eastl::tuple<> r1{};
   SerializationContext ctx;
-  ctx.createSerializer().ext(t1, bitsery::ext::StdTuple{});
-  ctx.createDeserializer().ext(r1, bitsery::ext::StdTuple{});
+  ctx.createSerializer().ext(t1, bitsery::ext::EastlTuple{});
+  ctx.createDeserializer().ext(r1, bitsery::ext::EastlTuple{});
   EXPECT_THAT(t1, Eq(r1));
 }
 
@@ -114,19 +136,19 @@ private:
     : _x{ 0.0f } {};
 };
 
-TEST(SerializeExtensionStdTuple, NonDefaultConstructable)
+TEST(SerializeExtensionEastlTuple, NonDefaultConstructable)
 {
-  std::tuple<NonDefaultConstructable> t1{ 34.0f };
-  std::tuple<NonDefaultConstructable> r1{ 8.0f };
+  eastl::tuple<NonDefaultConstructable> t1{ 34.0f };
+  eastl::tuple<NonDefaultConstructable> r1{ 8.0f };
   SerializationContext ctx;
   ctx.createSerializer().ext(
     t1,
-    bitsery::ext::StdTuple{
+    bitsery::ext::EastlTuple{
       [](auto& s, NonDefaultConstructable& v) { s.value4b(v._x); },
     });
   ctx.createDeserializer().ext(
     r1,
-    bitsery::ext::StdTuple{
+    bitsery::ext::EastlTuple{
       [](auto& s, NonDefaultConstructable& v) { s.value4b(v._x); },
     });
   EXPECT_THAT(t1, Eq(r1));
@@ -134,7 +156,7 @@ TEST(SerializeExtensionStdTuple, NonDefaultConstructable)
 
 #elif defined(_MSC_VER)
 #pragma message(                                                               \
-  "C++17 and /Zc:__cplusplus option is required to enable std::tuple tests")
+  "C++17 and /Zc:__cplusplus option is required to enable eastl::tuple tests")
 #else
-#pragma message("C++17 is required to enable std::tuple tests")
+#pragma message("C++17 is required to enable eastl::tuple tests")
 #endif

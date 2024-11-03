@@ -23,7 +23,7 @@
 #ifndef BITSERY_DETAILS_NOT_DEFINED_TYPE_H
 #define BITSERY_DETAILS_NOT_DEFINED_TYPE_H
 
-#include <iterator>
+#include <EASTL/iterator.h>
 
 namespace bitsery {
 namespace details {
@@ -61,13 +61,13 @@ struct NotDefinedType
 
 template<typename T>
 struct IsDefined
-  : public std::integral_constant<bool, !std::is_same<NotDefinedType, T>::value>
+  : public eastl::integral_constant<bool, !eastl::is_same<NotDefinedType, T>::value>
 {
 };
 }
 }
-
-namespace std {
+//TODO: std or eastl?
+namespace eastl {
 // define iterator traits to work with standart algorithms
 template<>
 struct iterator_traits<bitsery::details::NotDefinedType>
@@ -76,7 +76,7 @@ struct iterator_traits<bitsery::details::NotDefinedType>
   using value_type = int;
   using pointer = int*;
   using reference = int&;
-  using iterator_category = std::random_access_iterator_tag;
+  using iterator_category = eastl::random_access_iterator_tag;
 };
 }
 #endif // BITSERY_DETAILS_NOT_DEFINED_TYPE_H

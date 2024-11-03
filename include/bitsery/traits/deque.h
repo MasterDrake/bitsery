@@ -20,19 +20,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef BITSERY_TRAITS_STD_DEQUE_H
-#define BITSERY_TRAITS_STD_DEQUE_H
+#ifndef BITSERY_TRAITS_EASTL_DEQUE_H
+#define BITSERY_TRAITS_EASTL_DEQUE_H
 
-#include "core/std_defaults.h"
-#include <deque>
+#include "core/eastl_defaults.h"
+#include <EASTL/deque.h>
 
 namespace bitsery {
 
 namespace traits {
 
 template<typename T, typename Allocator>
-struct ContainerTraits<std::deque<T, Allocator>>
-  : public StdContainer<std::deque<T, Allocator>, true, false>
+struct ContainerTraits<eastl::deque<T, Allocator>>
+  : public EastlContainer<eastl::deque<T, Allocator>, true, false>
 {
 };
 
@@ -40,4 +40,4 @@ struct ContainerTraits<std::deque<T, Allocator>>
 
 }
 
-#endif // BITSERY_TRAITS_STD_DEQUE_H
+#endif // BITSERY_TRAITS_EASTL_DEQUE_H

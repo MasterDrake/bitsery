@@ -20,19 +20,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef BITSERY_BRIEF_SYNTAX_TYPE_STD_FORWARD_LIST_H
-#define BITSERY_BRIEF_SYNTAX_TYPE_STD_FORWARD_LIST_H
+#ifndef BITSERY_BRIEF_SYNTAX_TYPE_EASTL_SLIST_H
+#define BITSERY_BRIEF_SYNTAX_TYPE_EASTL_SLIST_H
 
 #include "../details/brief_syntax_common.h"
-#include "../traits/forward_list.h"
+#include "../traits/slist.h"
 
 namespace bitsery {
 template<typename S, typename T, typename Allocator>
 void
-serialize(S& s, std::forward_list<T, Allocator>& obj)
+serialize(S& s, eastl::slist<T, Allocator>& obj)
 {
   brief_syntax::processContainer(s, obj);
 }
 }
 
-#endif // BITSERY_BRIEF_SYNTAX_TYPE_STD_FORWARD_LIST_H
+#endif // BITSERY_BRIEF_SYNTAX_TYPE_SLIST_H

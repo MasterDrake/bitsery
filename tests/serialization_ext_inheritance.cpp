@@ -24,6 +24,28 @@
 #include <bitsery/ext/inheritance.h>
 #include <gmock/gmock.h>
 
+void* __cdecl operator new[](size_t size, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
+void* __cdecl operator new[](size_t size, size_t alignement, size_t offset, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)alignement;
+	(void)offset;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
 using bitsery::ext::BaseClass;
 using bitsery::ext::VirtualBaseClass;
 
@@ -153,8 +175,8 @@ bool
 operator==(const MultipleInheritanceVirtualBase& lhs,
            const MultipleInheritanceVirtualBase& rhs)
 {
-  return std::tie(lhs.x, lhs.y1, lhs.y2, lhs.z) ==
-         std::tie(rhs.x, rhs.y1, rhs.y2, rhs.z);
+  return eastl::tie(lhs.x, lhs.y1, lhs.y2, lhs.z) ==
+         eastl::tie(rhs.x, rhs.y1, rhs.y2, rhs.z);
 }
 
 TEST(SerializeExtensionInheritance, BaseClass)
@@ -265,13 +287,13 @@ TEST(SerializeExtensionInheritance, MultipleBasesWithVirtualInheritance)
 TEST(SerializeExtensionInheritance,
      MultipleBasesWithVirtualInheritanceMultipleObjects)
 {
-  std::vector<MultipleInheritanceVirtualBase> data;
+  eastl::vector<MultipleInheritanceVirtualBase> data;
   data.emplace_back(4, 8, 7, 9);
   data.emplace_back(1, 2, 3, 4);
   data.emplace_back(8, 7, 15, 97);
   data.emplace_back(54, 132, 45, 84);
   data.emplace_back(27, 85, 41, 2);
-  std::vector<MultipleInheritanceVirtualBase> res{};
+  eastl::vector<MultipleInheritanceVirtualBase> res{};
 
   SerContext ctx{};
   bitsery::ext::InheritanceContext inherCtxSer{};

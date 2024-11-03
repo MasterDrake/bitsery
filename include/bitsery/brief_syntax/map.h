@@ -20,12 +20,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef BITSERY_BRIEF_SYNTAX_TYPE_STD_MAP_H
-#define BITSERY_BRIEF_SYNTAX_TYPE_STD_MAP_H
+#ifndef BITSERY_BRIEF_SYNTAX_TYPE_EASTL_MAP_H
+#define BITSERY_BRIEF_SYNTAX_TYPE_EASTL_MAP_H
 
-#include "../ext/std_map.h"
-#include <limits>
-#include <map>
+#include "../ext/eastl_map.h"
+#include <EASTL/numeric_limits.h>
+#include <EASTL/map.h>
 
 namespace bitsery {
 template<typename S,
@@ -35,10 +35,10 @@ template<typename S,
          typename Allocator>
 void
 serialize(S& s,
-          std::map<Key, T, Compare, Allocator>& obj,
-          size_t maxSize = std::numeric_limits<size_t>::max())
+          eastl::map<Key, T, Compare, Allocator>& obj,
+          size_t maxSize = eastl::numeric_limits<size_t>::max())
 {
-  s.ext(obj, ext::StdMap{ maxSize }, [](S& s, Key& key, T& value) {
+  s.ext(obj, ext::EastlMap{ maxSize }, [](S& s, Key& key, T& value) {
     s.object(key);
     s.object(value);
   });
@@ -51,14 +51,14 @@ template<typename S,
          typename Allocator>
 void
 serialize(S& s,
-          std::multimap<Key, T, Compare, Allocator>& obj,
-          size_t maxSize = std::numeric_limits<size_t>::max())
+          eastl::multimap<Key, T, Compare, Allocator>& obj,
+          size_t maxSize = eastl::numeric_limits<size_t>::max())
 {
-  s.ext(obj, ext::StdMap{ maxSize }, [](S& s, Key& key, T& value) {
+  s.ext(obj, ext::EastlMap{ maxSize }, [](S& s, Key& key, T& value) {
     s.object(key);
     s.object(value);
   });
 }
 }
 
-#endif // BITSERY_BRIEF_SYNTAX_TYPE_STD_MAP_H
+#endif // BITSERY_BRIEF_SYNTAX_TYPE_EASTL_MAP_H

@@ -20,21 +20,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef BITSERY_EXT_STD_MAP_H
-#define BITSERY_EXT_STD_MAP_H
+#ifndef BITSERY_EXT_EASTL_SET_H
+#define BITSERY_EXT_EASTL_SET_H
 
 #include "../details/serialization_common.h"
-#include "../traits/core/traits.h"
-// we need this, so we could reserve for non ordered map
-#include <unordered_map>
+#include <EASTL/unordered_set.h>
 
 namespace bitsery {
 namespace ext {
 
-class StdMap
+class EastlSet
 {
 public:
-  constexpr explicit StdMap(size_t maxSize)
+  constexpr explicit EastlSet(size_t maxSize)
     : _maxSize{ maxSize }
   {
   }
@@ -43,60 +41,49 @@ public:
   void serialize(Ser& ser, const T& obj, Fnc&& fnc) const
   {
     using TKey = typename T::key_type;
-    using TValue = typename T::mapped_type;
     auto size = obj.size();
     assert(size <= _maxSize);
     details::writeSize(ser.adapter(), size);
 
     for (auto& v : obj)
-      fnc(ser, const_cast<TKey&>(v.first), const_cast<TValue&>(v.second));
+      fnc(ser, const_cast<TKey&>(v));
   }
 
   template<typename Des, typename T, typename Fnc>
   void deserialize(Des& des, T& obj, Fnc&& fnc) const
   {
     using TKey = typename T::key_type;
-    using TValue = typename T::mapped_type;
 
     size_t size{};
     details::readSize(
       des.adapter(),
       size,
       _maxSize,
-      std::integral_constant<bool, Des::TConfig::CheckDataErrors>{});
+      eastl::integral_constant<bool, Des::TConfig::CheckDataErrors>{});
     obj.clear();
     reserve(obj, size);
-
     auto hint = obj.begin();
     for (auto i = 0u; i < size; ++i) {
       auto key = bitsery::Access::create<TKey>();
-      auto value = bitsery::Access::create<TValue>();
-      fnc(des, key, value);
-      hint = obj.emplace_hint(hint, std::move(key), std::move(value));
+      fnc(des, key);
+      hint = obj.emplace_hint(hint, eastl::move(key));
     }
   }
 
 private:
-  template<typename Key,
-           typename T,
-           typename Hash,
-           typename KeyEqual,
-           typename Allocator>
-  void reserve(std::unordered_map<Key, T, Hash, KeyEqual, Allocator>& obj,
+  template<typename Key, typename Hash, typename KeyEqual, typename Allocator>
+  void reserve(eastl::unordered_set<Key, Hash, KeyEqual, Allocator>& obj,
                size_t size) const
   {
     obj.reserve(size);
   }
-  template<typename Key,
-           typename T,
-           typename Hash,
-           typename KeyEqual,
-           typename Allocator>
-  void reserve(std::unordered_multimap<Key, T, Hash, KeyEqual, Allocator>& obj,
+  template<typename Key, typename Hash, typename KeyEqual, typename Allocator>
+  void reserve(eastl::unordered_multiset<Key, Hash, KeyEqual, Allocator>& obj,
                size_t size) const
   {
     obj.reserve(size);
   }
+
   template<typename T>
   void reserve(T&, size_t) const
   {
@@ -108,15 +95,15 @@ private:
 
 namespace traits {
 template<typename T>
-struct ExtensionTraits<ext::StdMap, T>
+struct ExtensionTraits<ext::EastlSet, T>
 {
-  using TValue = void;
-  static constexpr bool SupportValueOverload = false;
-  static constexpr bool SupportObjectOverload = false;
+  using TValue = typename T::key_type;
+  static constexpr bool SupportValueOverload = true;
+  static constexpr bool SupportObjectOverload = true;
   static constexpr bool SupportLambdaOverload = true;
 };
 }
 
 }
 
-#endif // BITSERY_EXT_STD_MAP_H
+#endif // BITSERY_EXT_EASTL_SET_H

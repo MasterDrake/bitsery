@@ -6,19 +6,41 @@
 
 #include <bitsery/ext/value_range.h>
 
+void* __cdecl operator new[](size_t size, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
+void* __cdecl operator new[](size_t size, size_t alignement, size_t offset, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)alignement;
+	(void)offset;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
 namespace MyTypes {
 
 struct Monster
 {
   Monster() = default;
-  Monster(std::string _name, uint32_t minDmg, uint32_t maxDmg)
+  Monster(eastl::string _name, uint32_t minDmg, uint32_t maxDmg)
     : name{ _name }
     , minDamage{ minDmg }
     , maxDamage{ maxDmg }
   {
   }
 
-  std::string name{};
+  eastl::string name{};
   uint32_t minDamage{};
   uint32_t maxDamage{};
   //...
@@ -26,7 +48,7 @@ struct Monster
 
 struct GameState
 {
-  std::vector<Monster> monsters;
+  eastl::vector<Monster> monsters;
 };
 
 // default flow for monster
@@ -43,12 +65,12 @@ template<typename S>
 void
 serialize(S& s, GameState& o)
 {
-  // we can have multiple types in context with std::tuple
+  // we can have multiple types in context with eastl::tuple
   // if data type doesn't match then it will be compile time error
   // NOTE: if context is optional then you can call contextOrNull<T>, and it
   // will return null if T doesn't exists
   auto maxMonsters = s.template context<int>();
-  auto& dmgRange = s.template context<std::pair<uint32_t, uint32_t>>();
+  auto& dmgRange = s.template context<eastl::pair<uint32_t, uint32_t>>();
 
   s.container(o.monsters, maxMonsters, [&dmgRange](S& s, Monster& m) {
     s.text1b(m.name, 20);
@@ -65,7 +87,7 @@ serialize(S& s, GameState& o)
 
 }
 
-// context can contain multiple types by wrapping these types in std::tuple
+// context can contain multiple types by wrapping these types in eastl::tuple
 // in serialization function we can get type that we need like this:
 //   s.template context<int>();
 // this templated version also works if our context is the same as cast:
@@ -75,10 +97,10 @@ serialize(S& s, GameState& o)
 // NOTE:
 //  if your context has no additional usage outside of serialization flow,
 //  then you can create it internally via configuration (see inheritance.cpp)
-using Context = std::tuple<int, std::pair<uint32_t, uint32_t>>;
+using Context = eastl::tuple<int, eastl::pair<uint32_t, uint32_t>>;
 
 // use fixed-size buffer
-using Buffer = std::vector<uint8_t>;
+using Buffer = eastl::vector<uint8_t>;
 // define adapter types,
 using OutputAdapter = bitsery::OutputBufferAdapter<Buffer>;
 using InputAdapter = bitsery::InputBufferAdapter<Buffer>;
@@ -86,7 +108,6 @@ using InputAdapter = bitsery::InputBufferAdapter<Buffer>;
 int
 main()
 {
-
   MyTypes::GameState data{};
   data.monsters.push_back({ "weaksy", 100, 200 });
   data.monsters.push_back({ "bigsy", 500, 1000 });
@@ -95,10 +116,10 @@ main()
   // set context
   Context ctx{};
   // max monsters
-  std::get<0>(ctx) = 4;
+  eastl::get<0>(ctx) = 4;
   // damage range
-  std::get<1>(ctx).first = 100;
-  std::get<1>(ctx).second = 1000;
+  eastl::get<1>(ctx).first = 100;
+  eastl::get<1>(ctx).second = 1000;
 
   // create buffer to store data to
   Buffer buffer{};

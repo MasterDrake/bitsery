@@ -20,26 +20,48 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include <bitsery/ext/std_queue.h>
+#include <bitsery/ext/eastl_queue.h>
 
 #include "serialization_test_utils.h"
 #include <gmock/gmock.h>
 
-using StdQueue = bitsery::ext::StdQueue;
+void* __cdecl operator new[](size_t size, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
+void* __cdecl operator new[](size_t size, size_t alignement, size_t offset, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)alignement;
+	(void)offset;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
+using EastlQueue = bitsery::ext::EastlQueue;
 
 using testing::Eq;
 
 // inherit from queue so we could take underlying container, because priority
 // queue doesn't have equal operator defined
 template<typename T, typename C>
-struct PriorityQueueCnt : public std::priority_queue<T, C>
+struct PriorityQueueCnt : public eastl::priority_queue<T, C>
 {
-  static const C& getContainer(const std::priority_queue<T, C>& s)
+  static const C& getContainer(const eastl::priority_queue<T, C>& s)
   {
     // get address of underlying container
     return s.*(&PriorityQueueCnt::c);
   }
-  static C& getContainer(std::priority_queue<T, C>& s)
+  static C& getContainer(eastl::priority_queue<T, C>& s)
   {
     // get address of underlying container
     return s.*(&PriorityQueueCnt::c);
@@ -50,58 +72,58 @@ template<typename T>
 void
 test(SerializationContext& ctx, const T& v, T& r)
 {
-  ctx.createSerializer().ext4b(v, StdQueue{ 10 });
-  ctx.createDeserializer().ext4b(r, StdQueue{ 10 });
+  ctx.createSerializer().ext4b(v, EastlQueue{ 10 });
+  ctx.createDeserializer().ext4b(r, EastlQueue{ 10 });
 }
 
-TEST(SerializeExtensionStdQueue, QueueDefaultContainer)
+TEST(SerializeExtensionEastlQueue, QueueDefaultContainer)
 {
-  std::queue<int32_t> t1{};
+  eastl::queue<int32_t> t1{};
   t1.push(3);
   t1.push(-4854);
-  std::queue<int32_t> r1{};
+  eastl::queue<int32_t> r1{};
 
   SerializationContext ctx1{};
   test(ctx1, t1, r1);
   EXPECT_THAT(t1, Eq(r1));
 }
 
-TEST(SerializeExtensionStdQueue, QueueVectorContainer)
+TEST(SerializeExtensionEastlQueue, QueueVectorContainer)
 {
-  std::queue<int32_t, std::vector<int32_t>> t1{};
+  eastl::queue<int32_t, eastl::vector<int32_t>> t1{};
   t1.push(3);
   t1.push(-4854);
-  std::queue<int32_t, std::vector<int32_t>> r1{};
+  eastl::queue<int32_t, eastl::vector<int32_t>> r1{};
 
   SerializationContext ctx1{};
   test(ctx1, t1, r1);
   EXPECT_THAT(t1, Eq(r1));
 }
 
-TEST(SerializeExtensionStdQueue, PriorityQueueDefaultContainer)
+TEST(SerializeExtensionEastlQueue, PriorityQueueDefaultContainer)
 {
-  std::priority_queue<int32_t> t1{};
+  eastl::priority_queue<int32_t> t1{};
   t1.push(3);
   t1.push(-4854);
-  std::priority_queue<int32_t> r1{};
+  eastl::priority_queue<int32_t> r1{};
 
   SerializationContext ctx1{};
   test(ctx1, t1, r1);
-  auto& ct1 = PriorityQueueCnt<int32_t, std::vector<int32_t>>::getContainer(t1);
-  auto& cr1 = PriorityQueueCnt<int32_t, std::vector<int32_t>>::getContainer(r1);
+  auto& ct1 = PriorityQueueCnt<int32_t, eastl::vector<int32_t>>::getContainer(t1);
+  auto& cr1 = PriorityQueueCnt<int32_t, eastl::vector<int32_t>>::getContainer(r1);
   EXPECT_THAT(ct1, Eq(cr1));
 }
 
-TEST(SerializeExtensionStdQueue, PriorityQueueDequeContainer)
+TEST(SerializeExtensionEastlQueue, PriorityQueueDequeContainer)
 {
-  std::priority_queue<int32_t, std::deque<int32_t>> t1{};
+  eastl::priority_queue<int32_t, eastl::deque<int32_t>> t1{};
   t1.push(678);
   t1.push(-44);
-  std::priority_queue<int32_t, std::deque<int32_t>> r1{};
+  eastl::priority_queue<int32_t, eastl::deque<int32_t>> r1{};
 
   SerializationContext ctx1{};
   test(ctx1, t1, r1);
-  auto& ct1 = PriorityQueueCnt<int32_t, std::deque<int32_t>>::getContainer(t1);
-  auto& cr1 = PriorityQueueCnt<int32_t, std::deque<int32_t>>::getContainer(r1);
+  auto& ct1 = PriorityQueueCnt<int32_t, eastl::deque<int32_t>>::getContainer(t1);
+  auto& cr1 = PriorityQueueCnt<int32_t, eastl::deque<int32_t>>::getContainer(r1);
   EXPECT_THAT(ct1, Eq(cr1));
 }

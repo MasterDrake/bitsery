@@ -25,7 +25,7 @@
 #include <bitsery/brief_syntax/atomic.h>
 #include <bitsery/brief_syntax/chrono.h>
 #include <bitsery/brief_syntax/deque.h>
-#include <bitsery/brief_syntax/forward_list.h>
+#include <bitsery/brief_syntax/slist.h>
 #include <bitsery/brief_syntax/list.h>
 #include <bitsery/brief_syntax/map.h>
 #include <bitsery/brief_syntax/memory.h>
@@ -46,10 +46,10 @@
 #endif
 #elif defined(_MSC_VER)
 #pragma message(                                                               \
-  "C++17 and /Zc:__cplusplus option is required to enable std::tuple and std::variant brief syntax tests")
+  "C++17 and /Zc:__cplusplus option is required to enable eastl::tuple and eastl::variant brief syntax tests")
 #else
 #pragma message(                                                               \
-  "C++17 is required to enable std::tuple and std::variant brief syntax tests")
+  "C++17 is required to enable eastl::tuple and eastl::variant brief syntax tests")
 #endif
 
 #include "serialization_test_utils.h"
@@ -172,7 +172,7 @@ procBriefSyntaxRvalue(T&& init_value, const T& testData)
   SerializationContext ctx;
   ctx.createSerializer()(testData);
   ctx.createDeserializer()(init_value);
-  return std::move(init_value);
+  return eastl::move(init_value);
 }
 
 template<typename T>
@@ -224,8 +224,8 @@ TEST(BriefSyntax, CStyleArray)
 
 TEST(BriefSyntax, StdString)
 {
-  std::string t1{ "my nice string" };
-  std::string t2{};
+  eastl::string t1{ "my nice string" };
+  eastl::string t2{};
 
   EXPECT_THAT(procBriefSyntax(t1), Eq(t1));
   EXPECT_THAT(procBriefSyntax(t2), Eq(t2));
@@ -235,8 +235,8 @@ TEST(BriefSyntax, StdString)
 
 TEST(BriefSyntax, StdArray)
 {
-  std::array<int, 3> t1{ 8748, -484, 45 };
-  std::array<int, 0> t2{};
+  eastl::array<int, 3> t1{ 8748, -484, 45 };
+  eastl::array<int, 0> t2{};
 
   EXPECT_THAT(procBriefSyntax(t1), Eq(t1));
   EXPECT_THAT(procBriefSyntax(t2), Eq(t2));
@@ -244,8 +244,8 @@ TEST(BriefSyntax, StdArray)
 
 TEST(BriefSyntax, StdVector)
 {
-  std::vector<int> t1{ 8748, -484, 45 };
-  std::vector<float> t2{ 5.f, 0.198f };
+  eastl::vector<int> t1{ 8748, -484, 45 };
+  eastl::vector<float> t2{ 5.f, 0.198f };
 
   EXPECT_THAT(procBriefSyntax(t1), Eq(t1));
   EXPECT_THAT(procBriefSyntax(t2), Eq(t2));
@@ -255,8 +255,8 @@ TEST(BriefSyntax, StdVector)
 
 TEST(BriefSyntax, StdList)
 {
-  std::list<int> t1{ 8748, -484, 45 };
-  std::list<float> t2{ 5.f, 0.198f };
+  eastl::list<int> t1{ 8748, -484, 45 };
+  eastl::list<float> t2{ 5.f, 0.198f };
 
   EXPECT_THAT(procBriefSyntax(t1), Eq(t1));
   EXPECT_THAT(procBriefSyntax(t2), Eq(t2));
@@ -266,8 +266,8 @@ TEST(BriefSyntax, StdList)
 
 TEST(BriefSyntax, StdForwardList)
 {
-  std::forward_list<int> t1{ 8748, -484, 45 };
-  std::forward_list<float> t2{ 5.f, 0.198f };
+  eastl::slist<int> t1{ 8748, -484, 45 };
+  eastl::slist<float> t2{ 5.f, 0.198f };
 
   EXPECT_THAT(procBriefSyntax(t1), Eq(t1));
   EXPECT_THAT(procBriefSyntax(t2), Eq(t2));
@@ -277,8 +277,8 @@ TEST(BriefSyntax, StdForwardList)
 
 TEST(BriefSyntax, StdDeque)
 {
-  std::deque<int> t1{ 8748, -484, 45 };
-  std::deque<float> t2{ 5.f, 0.198f };
+  eastl::deque<int> t1{ 8748, -484, 45 };
+  eastl::deque<float> t2{ 5.f, 0.198f };
 
   EXPECT_THAT(procBriefSyntax(t1), Eq(t1));
   EXPECT_THAT(procBriefSyntax(t2), Eq(t2));
@@ -288,7 +288,7 @@ TEST(BriefSyntax, StdDeque)
 
 TEST(BriefSyntax, StdQueue)
 {
-  std::queue<std::string> t1;
+  eastl::queue<eastl::string> t1;
   t1.push("first");
   t1.push("second string");
 
@@ -298,7 +298,7 @@ TEST(BriefSyntax, StdQueue)
 
 TEST(BriefSyntax, StdPriorityQueue)
 {
-  std::priority_queue<std::string> t1;
+  eastl::priority_queue<eastl::string> t1;
   t1.push("first");
   t1.push("second string");
   t1.push("third");
@@ -316,7 +316,7 @@ TEST(BriefSyntax, StdPriorityQueue)
 
 TEST(BriefSyntax, StdStack)
 {
-  std::stack<std::string> t1;
+  eastl::stack<eastl::string> t1;
   t1.push("first");
   t1.push("second string");
 
@@ -326,7 +326,7 @@ TEST(BriefSyntax, StdStack)
 
 TEST(BriefSyntax, StdUnorderedMap)
 {
-  std::unordered_map<int, int> t1;
+  eastl::unordered_map<int, int> t1;
   t1.emplace(3423, 624);
   t1.emplace(-5484, -845);
 
@@ -336,7 +336,7 @@ TEST(BriefSyntax, StdUnorderedMap)
 
 TEST(BriefSyntax, StdUnorderedMultiMap)
 {
-  std::unordered_multimap<std::string, int> t1;
+  eastl::unordered_multimap<eastl::string, int> t1;
   t1.emplace("one", 624);
   t1.emplace("two", -845);
   t1.emplace("one", 897);
@@ -347,7 +347,7 @@ TEST(BriefSyntax, StdUnorderedMultiMap)
 
 TEST(BriefSyntax, StdMap)
 {
-  std::map<int, int> t1;
+  eastl::map<int, int> t1;
   t1.emplace(3423, 624);
   t1.emplace(-5484, -845);
 
@@ -357,7 +357,7 @@ TEST(BriefSyntax, StdMap)
 
 TEST(BriefSyntax, StdMultiMap)
 {
-  std::multimap<std::string, int> t1;
+  eastl::multimap<eastl::string, int> t1;
   t1.emplace("one", 624);
   t1.emplace("two", -845);
   t1.emplace("one", 897);
@@ -369,16 +369,16 @@ TEST(BriefSyntax, StdMultiMap)
   for (auto it = t1.begin(); it != t1.end();) {
     const auto lr = t1.equal_range(it->first);
     const auto rr = res.equal_range(it->first);
-    EXPECT_TRUE(std::distance(lr.first, lr.second) ==
-                std::distance(rr.first, rr.second));
-    EXPECT_TRUE(std::is_permutation(lr.first, lr.second, rr.first));
+    EXPECT_TRUE(eastl::distance(lr.first, lr.second) ==
+                eastl::distance(rr.first, rr.second));
+    EXPECT_TRUE(eastl::is_permutation(lr.first, lr.second, rr.first));
     it = lr.second;
   }
 }
 
 TEST(BriefSyntax, StdUnorderedSet)
 {
-  std::unordered_set<std::string> t1;
+  eastl::unordered_set<eastl::string> t1;
   t1.emplace("one");
   t1.emplace("two");
   t1.emplace("three");
@@ -389,7 +389,7 @@ TEST(BriefSyntax, StdUnorderedSet)
 
 TEST(BriefSyntax, StdUnorderedMultiSet)
 {
-  std::unordered_multiset<std::string> t1;
+  eastl::unordered_multiset<eastl::string> t1;
   t1.emplace("one");
   t1.emplace("two");
   t1.emplace("three");
@@ -401,7 +401,7 @@ TEST(BriefSyntax, StdUnorderedMultiSet)
 
 TEST(BriefSyntax, StdSet)
 {
-  std::set<std::string> t1;
+  eastl::set<eastl::string> t1;
   t1.emplace("one");
   t1.emplace("two");
   t1.emplace("three");
@@ -412,7 +412,7 @@ TEST(BriefSyntax, StdSet)
 
 TEST(BriefSyntax, StdMultiSet)
 {
-  std::multiset<std::string> t1;
+  eastl::multiset<eastl::string> t1;
   t1.emplace("one");
   t1.emplace("two");
   t1.emplace("three");
@@ -425,17 +425,17 @@ TEST(BriefSyntax, StdMultiSet)
 
 TEST(BriefSyntax, StdSmartPtr)
 {
-  std::shared_ptr<int> dataShared1(new int{ 4 });
-  std::weak_ptr<int> dataWeak1(dataShared1);
-  std::unique_ptr<std::string> dataUnique1{ new std::string{ "hello world" } };
+  eastl::shared_ptr<int> dataShared1(new int{ 4 });
+  eastl::weak_ptr<int> dataWeak1(dataShared1);
+  eastl::unique_ptr<eastl::string> dataUnique1{ new eastl::string{ "hello world" } };
 
   bitsery::ext::PointerLinkingContext plctx1{};
   BasicSerializationContext<bitsery::ext::PointerLinkingContext> ctx;
   ctx.createSerializer(plctx1)(dataShared1, dataWeak1, dataUnique1);
 
-  std::shared_ptr<int> resShared1{};
-  std::weak_ptr<int> resWeak1{};
-  std::unique_ptr<std::string> resUnique1{};
+  eastl::shared_ptr<int> resShared1{};
+  eastl::weak_ptr<int> resWeak1{};
+  eastl::unique_ptr<eastl::string> resUnique1{};
   ctx.createDeserializer(plctx1)(resShared1, resWeak1, resUnique1);
   // clear shared state from pointer linking context
   plctx1.clearSharedState();
@@ -448,14 +448,14 @@ TEST(BriefSyntax, StdSmartPtr)
 
 TEST(BriefSyntax, StdDuration)
 {
-  std::chrono::duration<int64_t, std::milli> t1{ 54654 };
+  eastl::chrono::duration<int64_t, eastl::milli> t1{ 54654 };
   EXPECT_TRUE(procBriefSyntax(t1) == t1);
 }
 
 TEST(BriefSyntax, StdTimePoint)
 {
-  using Duration = std::chrono::duration<double, std::milli>;
-  using TP = std::chrono::time_point<std::chrono::system_clock, Duration>;
+  using Duration = eastl::chrono::duration<double, eastl::milli>;
+  using TP = eastl::chrono::time_point<eastl::chrono::system_clock, Duration>;
 
   TP data{ Duration{ 874656.4798 } };
   EXPECT_TRUE(procBriefSyntax(data) == data);
@@ -482,7 +482,7 @@ TEST(BriefSyntax, StdAtomic)
 
 TEST(BriefSyntax, StdTuple)
 {
-  std::tuple<int, std::string, std::vector<char>> t1{ 5,
+  eastl::tuple<int, eastl::string, eastl::vector<char>> t1{ 5,
                                                       "hello hello",
                                                       { 'A', 'B', 'C' } };
   EXPECT_TRUE(procBriefSyntax(t1) == t1);
@@ -490,14 +490,14 @@ TEST(BriefSyntax, StdTuple)
 
 TEST(BriefSyntax, StdVariant)
 {
-  std::variant<float, std::string, std::chrono::milliseconds> t1{ std::string(
+  eastl::variant<float, eastl::string, eastl::chrono::milliseconds> t1{ eastl::string(
     "hello hello") };
   EXPECT_TRUE(procBriefSyntax(t1) == t1);
 }
 
 TEST(BriefSyntax, StdOptional)
 {
-  std::optional<uint32_t> opt{ 54654 };
+  eastl::optional<uint32_t> opt{ 54654 };
   EXPECT_TRUE(procBriefSyntax(opt) == opt);
 }
 
@@ -505,7 +505,7 @@ TEST(BriefSyntax, StdOptional)
 
 TEST(BriefSyntax, StdBitset)
 {
-  std::bitset<17> bits{ 0b10101010101010101 };
+  eastl::bitset<17> bits{ 0b10101010101010101 };
   EXPECT_TRUE(procBriefSyntax(bits) == bits);
 }
 
@@ -515,9 +515,9 @@ TEST(BriefSyntax, StdBitset)
 
 TEST(BriefSyntax, NestedTypes)
 {
-  std::unordered_map<std::string, std::vector<std::string>> t1;
-  t1.emplace("my key", std::vector<std::string>{ "very", "nice", "string" });
-  t1.emplace("other key", std::vector<std::string>{ "just a string" });
+  eastl::unordered_map<eastl::string, eastl::vector<eastl::string>> t1;
+  t1.emplace("my key", eastl::vector<eastl::string>{ "very", "nice", "string" });
+  t1.emplace("other key", eastl::vector<eastl::string>{ "just a string" });
 
   EXPECT_THAT(procBriefSyntax(t1), Eq(t1));
   EXPECT_THAT(procBriefSyntaxWithMaxSize(t1), Eq(t1));

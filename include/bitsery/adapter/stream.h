@@ -25,10 +25,11 @@
 
 #include "../details/adapter_bit_packing.h"
 #include "../traits/array.h"
-#include <algorithm>
+#include <EASTL/algorithm.h>
 #include <cassert>
 #include <ios>
-#include <limits>
+#include <EASTL/numeric_limits.h>
+#include <EASTL/array.h>
 
 namespace bitsery {
 
@@ -47,7 +48,7 @@ public:
   using TValue = TChar;
 
   BasicInputStreamAdapter(std::basic_ios<TChar, CharTraits>& istream)
-    : _ios{ std::addressof(istream) }
+    : _ios{ eastl::addressof(istream) }
   {
   }
 
@@ -59,26 +60,26 @@ public:
 
   void currentReadPos(size_t)
   {
-    static_assert(std::is_void<TChar>::value,
+    static_assert(eastl::is_void<TChar>::value,
                   "setting read position is not supported with StreamAdapter");
   }
 
   size_t currentReadPos() const
   {
-    static_assert(std::is_void<TChar>::value,
+    static_assert(eastl::is_void<TChar>::value,
                   "setting read position is not supported with StreamAdapter");
     return {};
   }
 
   void currentReadEndPos(size_t)
   {
-    static_assert(std::is_void<TChar>::value,
+    static_assert(eastl::is_void<TChar>::value,
                   "setting read position is not supported with StreamAdapter");
   }
 
   size_t currentReadEndPos() const
   {
-    static_assert(std::is_void<TChar>::value,
+    static_assert(eastl::is_void<TChar>::value,
                   "setting read position is not supported with StreamAdapter");
     return {};
   }
@@ -97,7 +98,7 @@ public:
   {
     if (_err == ReaderError::NoError) {
       _err = error;
-      _zeroIfNoErrors = std::numeric_limits<size_t>::max();
+      _zeroIfNoErrors = eastl::numeric_limits<size_t>::max();
     }
   }
 
@@ -106,16 +107,16 @@ private:
   void readInternalValue(TValue* data)
   {
     readChecked(
-      data, SIZE, std::integral_constant<bool, Config::CheckAdapterErrors>{});
+      data, SIZE, eastl::integral_constant<bool, Config::CheckAdapterErrors>{});
   }
 
   void readInternalBuffer(TValue* data, size_t size)
   {
     readChecked(
-      data, size, std::integral_constant<bool, Config::CheckAdapterErrors>{});
+      data, size, eastl::integral_constant<bool, Config::CheckAdapterErrors>{});
   }
 
-  void readChecked(TValue* data, size_t size, std::true_type)
+  void readChecked(TValue* data, size_t size, eastl::true_type)
   {
     if (size - static_cast<size_t>(_ios->rdbuf()->sgetn(
                  data, static_cast<std::streamsize>(size))) !=
@@ -129,7 +130,7 @@ private:
     }
   }
 
-  void readChecked(TValue* data, size_t size, std::false_type)
+  void readChecked(TValue* data, size_t size, eastl::false_type)
   {
     _ios->rdbuf()->sgetn(data, static_cast<std::streamsize>(size));
   }
@@ -154,19 +155,19 @@ public:
   using TValue = TChar;
 
   BasicOutputStreamAdapter(std::basic_ostream<TChar, CharTraits>& ostream)
-    : _ostream{ std::addressof(ostream) }
+    : _ostream{ eastl::addressof(ostream) }
   {
   }
 
   void currentWritePos(size_t)
   {
-    static_assert(std::is_void<TChar>::value,
+    static_assert(eastl::is_void<TChar>::value,
                   "setting write position is not supported with StreamAdapter");
   }
 
   size_t currentWritePos() const
   {
-    static_assert(std::is_void<TChar>::value,
+    static_assert(eastl::is_void<TChar>::value,
                   "setting write position is not supported with StreamAdapter");
     return {};
   }
@@ -175,7 +176,7 @@ public:
 
   size_t writtenBytesCount() const
   {
-    static_assert(std::is_void<TChar>::value,
+    static_assert(eastl::is_void<TChar>::value,
                   "`writtenBytesCount` cannot be used with stream adapter");
     // streaming doesn't return written bytes
     return 0u;
@@ -199,7 +200,7 @@ private:
 template<typename TChar,
          typename Config,
          typename CharTraits,
-         typename TBuffer = std::array<TChar, 256>>
+         typename TBuffer = eastl::array<TChar, 256>>
 class BasicBufferedOutputStreamAdapter
   : public details::OutputAdapterBaseCRTP<
       BasicBufferedOutputStreamAdapter<TChar, Config, CharTraits, TBuffer>>
@@ -226,9 +227,9 @@ public:
   BasicBufferedOutputStreamAdapter(
     std::basic_ostream<TChar, CharTraits>& ostream,
     size_t bufferSize = 256)
-    : _ostream(std::addressof(ostream))
+    : _ostream(eastl::addressof(ostream))
     , _buf{}
-    , _beginIt{ std::begin(_buf) }
+    , _beginIt{ eastl::begin(_buf) }
     , _currOffset{ 0 }
   {
     init(bufferSize, TResizable{});
@@ -246,8 +247,8 @@ public:
 
   BasicBufferedOutputStreamAdapter(BasicBufferedOutputStreamAdapter&& rhs)
     : _ostream{ rhs._ostream }
-    , _buf{ std::move(rhs._buf) }
-    , _beginIt{ std::begin(_buf) }
+    , _buf{ eastl::move(rhs._buf) }
+    , _beginIt{ eastl::begin(_buf) }
     , _currOffset{ rhs._currOffset }
     , _bufferSize{ rhs._bufferSize } {};
 
@@ -255,8 +256,8 @@ public:
     BasicBufferedOutputStreamAdapter&& rhs)
   {
     _ostream = rhs._ostream;
-    _buf = std::move(rhs._buf);
-    _beginIt = std::begin(_buf);
+    _buf = eastl::move(rhs._buf);
+    _beginIt = eastl::begin(_buf);
     _currOffset = rhs._currOffset;
     _bufferSize = rhs._bufferSize;
     return *this;
@@ -264,13 +265,13 @@ public:
 
   void currentWritePos(size_t)
   {
-    static_assert(std::is_void<TChar>::value,
+    static_assert(eastl::is_void<TChar>::value,
                   "setting write position is not supported with StreamAdapter");
   }
 
   size_t currentWritePos() const
   {
-    static_assert(std::is_void<TChar>::value,
+    static_assert(eastl::is_void<TChar>::value,
                   "setting write position is not supported with StreamAdapter");
     return {};
   }
@@ -283,7 +284,7 @@ public:
 
   size_t writtenBytesCount() const
   {
-    static_assert(std::is_void<TChar>::value,
+    static_assert(eastl::is_void<TChar>::value,
                   "`writtenBytesCount` cannot be used with stream adapter");
     // streaming doesn't return written bytes
     return 0u;
@@ -291,8 +292,8 @@ public:
 
 private:
   using TResizable =
-    std::integral_constant<bool, traits::ContainerTraits<TBuffer>::isResizable>;
-  using diff_t = typename std::iterator_traits<BufferIt>::difference_type;
+    eastl::integral_constant<bool, traits::ContainerTraits<TBuffer>::isResizable>;
+  using diff_t = typename eastl::iterator_traits<BufferIt>::difference_type;
 
   template<size_t SIZE>
   void writeInternalValue(const TValue* data)
@@ -309,7 +310,7 @@ private:
   {
     const auto newOffset = _currOffset + size;
     if (newOffset <= _bufferSize) {
-      std::copy_n(data, size, _beginIt + static_cast<diff_t>(_currOffset));
+      eastl::copy_n(data, size, _beginIt + static_cast<diff_t>(_currOffset));
       _currOffset = newOffset;
     } else {
       writeBufferToStream();
@@ -320,19 +321,19 @@ private:
 
   void writeBufferToStream()
   {
-    _ostream->rdbuf()->sputn(std::addressof(*_beginIt),
+    _ostream->rdbuf()->sputn(eastl::addressof(*_beginIt),
                              static_cast<std::streamsize>(_currOffset));
     _currOffset = 0;
   }
 
-  void init(size_t buffSize, std::true_type)
+  void init(size_t buffSize, eastl::true_type)
   {
     // resize buffer
     _bufferSize = buffSize;
     _buf.resize(_bufferSize);
-    _beginIt = std::begin(_buf);
+    _beginIt = eastl::begin(_buf);
   }
-  void init(size_t, std::false_type)
+  void init(size_t, eastl::false_type)
   {
     // ignore buffer size parameter, and instead take actual buffer size
     _bufferSize = traits::ContainerTraits<Buffer>::size(_buf);

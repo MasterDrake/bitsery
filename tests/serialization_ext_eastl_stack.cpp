@@ -21,10 +21,32 @@
 // SOFTWARE.
 
 #include "serialization_test_utils.h"
-#include <bitsery/ext/std_stack.h>
+#include <bitsery/ext/eastl_stack.h>
 #include <gmock/gmock.h>
 
-using StdStack = bitsery::ext::StdStack;
+void* __cdecl operator new[](size_t size, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
+void* __cdecl operator new[](size_t size, size_t alignement, size_t offset, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)alignement;
+	(void)offset;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
+using EastlStack = bitsery::ext::EastlStack;
 
 using testing::Eq;
 
@@ -32,28 +54,28 @@ template<typename T>
 void
 test(SerializationContext& ctx, const T& v, T& r)
 {
-  ctx.createSerializer().ext4b(v, StdStack{ 10 });
-  ctx.createDeserializer().ext4b(r, StdStack{ 10 });
+  ctx.createSerializer().ext4b(v, EastlStack{ 10 });
+  ctx.createDeserializer().ext4b(r, EastlStack{ 10 });
 }
 
-TEST(SerializeExtensionStdStack, DefaultContainer)
+TEST(SerializeExtensionEastlStack, DefaultContainer)
 {
-  std::stack<int32_t> t1{};
+  eastl::stack<int32_t> t1{};
   t1.push(3);
   t1.push(-4854);
-  std::stack<int32_t> r1{};
+  eastl::stack<int32_t> r1{};
 
   SerializationContext ctx1;
   test(ctx1, t1, r1);
   EXPECT_THAT(t1, Eq(r1));
 }
 
-TEST(SerializeExtensionStdStack, VectorContainer)
+TEST(SerializeExtensionEastlStack, VectorContainer)
 {
-  std::stack<int32_t, std::vector<int32_t>> t1{};
+  eastl::stack<int32_t, eastl::vector<int32_t>> t1{};
   t1.push(3);
   t1.push(-4854);
-  std::stack<int32_t, std::vector<int32_t>> r1{};
+  eastl::stack<int32_t, eastl::vector<int32_t>> r1{};
 
   SerializationContext ctx1;
   test(ctx1, t1, r1);

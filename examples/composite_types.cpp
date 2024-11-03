@@ -12,7 +12,7 @@
 
 struct MyStruct
 {
-  std::vector<int32_t> v{};
+  eastl::vector<int32_t> v{};
   float f{};
 
   bool operator==(const MyStruct& rhs) const
@@ -30,8 +30,8 @@ serialize(S& s, MyStruct& o)
 }
 
 // this will be the type that we want to serialize/deserialize
-using MyTuple = std::tuple<float, MyStruct>;
-using MyVariant = std::variant<int64_t, MyTuple, MyStruct>;
+using MyTuple = eastl::tuple<float, MyStruct>;
+using MyVariant = eastl::variant<int64_t, MyTuple, MyStruct>;
 
 // define default serialize function for MyVariant, so that we could use
 // quickSerialization/Deserialization functions
@@ -91,7 +91,7 @@ serialize(S& s, MyVariant& o)
 }
 
 // some helper types
-using Buffer = std::vector<uint8_t>;
+using Buffer = eastl::vector<uint8_t>;
 using OutputAdapter = bitsery::OutputBufferAdapter<Buffer>;
 using InputAdapter = bitsery::InputBufferAdapter<Buffer>;
 
@@ -130,6 +130,6 @@ main()
 int
 main()
 {
-  return 0;
+  return -1;
 }
 #endif

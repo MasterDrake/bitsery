@@ -24,7 +24,7 @@
 #define BITSERY_RTTI_UTILS_H
 
 #include <cstddef>
-#include <type_traits>
+#include <EASTL/type_traits.h>
 #include <typeinfo>
 
 namespace bitsery {
@@ -48,14 +48,14 @@ struct StandardRTTI
   template<typename TBase, typename TDerived>
   static constexpr TDerived* cast(TBase* obj)
   {
-    static_assert(!std::is_pointer<TDerived>::value, "");
+    static_assert(!eastl::is_pointer<TDerived>::value, "");
     return dynamic_cast<TDerived*>(obj);
   }
 
   template<typename TBase>
   static constexpr bool isPolymorphic()
   {
-    return std::is_polymorphic<TBase>::value;
+    return eastl::is_polymorphic<TBase>::value;
   }
 };
 

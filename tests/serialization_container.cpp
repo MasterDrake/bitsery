@@ -22,11 +22,33 @@
 
 #include <bitsery/traits/array.h>
 #include <bitsery/traits/deque.h>
-#include <bitsery/traits/forward_list.h>
+#include <bitsery/traits/slist.h>
 #include <bitsery/traits/list.h>
 
 #include "serialization_test_utils.h"
 #include <gmock/gmock.h>
+
+void* __cdecl operator new[](size_t size, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
+void* __cdecl operator new[](size_t size, size_t alignement, size_t offset, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)alignement;
+	(void)offset;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
 
 using testing::ContainerEq;
 using testing::Eq;
@@ -43,16 +65,16 @@ getFilledContainer()
 }
 
 template<>
-std::vector<MyStruct1>
-getFilledContainer<std::vector<MyStruct1>>()
+eastl::vector<MyStruct1>
+getFilledContainer<eastl::vector<MyStruct1>>()
 {
   return { { 0, 1 }, { 2, 3 },   { 4, 5 },      { 6, 7 },
            { 8, 9 }, { 11, 34 }, { 5134, 1532 } };
 }
 
 template<>
-std::list<MyStruct2>
-getFilledContainer<std::list<MyStruct2>>()
+eastl::list<MyStruct2>
+getFilledContainer<eastl::list<MyStruct2>>()
 {
   return { { MyStruct2::V1, { 0, 1 } }, { MyStruct2::V3, { -45, 45 } } };
 }
@@ -85,12 +107,12 @@ public:
     return ctx.containerSizeSerializedBytesCount(size) + size * sizeof(TValue);
   }
 };
-// std::forward_list is not supported, because it doesn't have size() method
+// eastl::slist is not supported, because it doesn't have size() method
 using SequenceContainersWithArthmeticTypes =
-  ::testing::Types<std::vector<int>,
-                   std::list<float>,
-                   std::forward_list<int>,
-                   std::deque<unsigned short>>;
+  ::testing::Types<eastl::vector<int>,
+                   eastl::list<float>,
+                   eastl::slist<int>,
+                   eastl::deque<unsigned short>>;
 
 TYPED_TEST_SUITE(SerializeContainerDynamicSizeArthmeticTypes,
                  SequenceContainersWithArthmeticTypes, );
@@ -149,7 +171,7 @@ public:
 };
 
 using SerializeContainerDynamicSizeWithCompositeTypes =
-  ::testing::Types<std::vector<MyStruct1>, std::list<MyStruct2>>;
+  ::testing::Types<eastl::vector<MyStruct1>, eastl::list<MyStruct2>>;
 
 TYPED_TEST_SUITE(SerializeContainerDynamicSizeCompositeTypes,
                  SerializeContainerDynamicSizeWithCompositeTypes, );
@@ -187,12 +209,12 @@ public:
   size_t getContainerSize()
   {
     T tmp{};
-    return static_cast<size_t>(std::distance(std::begin(tmp), std::end(tmp)));
+    return static_cast<size_t>(eastl::distance(eastl::begin(tmp), eastl::end(tmp)));
   }
 };
 
 using StaticContainersWithIntegralTypes =
-  ::testing::Types<std::array<int16_t, 4>, int16_t[4]>;
+  ::testing::Types<eastl::array<int16_t, 4>, int16_t[4]>;
 
 TYPED_TEST_SUITE(SerializeContainerFixedSizeArithmeticTypes,
                  StaticContainersWithIntegralTypes, );
@@ -218,7 +240,7 @@ class SerializeContainerFixedSizeCompositeTypes
 };
 
 using StaticContainersWithCompositeTypes =
-  ::testing::Types<std::array<MyStruct1, 4>, MyStruct1[4]>;
+  ::testing::Types<eastl::array<MyStruct1, 4>, MyStruct1[4]>;
 
 TYPED_TEST_SUITE(SerializeContainerFixedSizeCompositeTypes,
                  StaticContainersWithCompositeTypes, );
@@ -252,7 +274,7 @@ TYPED_TEST(SerializeContainerFixedSizeCompositeTypes,
                  MyStruct1{ 5134, 1532 } };
   Container res{};
 
-  using TValue = decltype(*std::begin(res));
+  using TValue = decltype(*eastl::begin(res));
 
   SerializationContext ctx{};
   auto& ser = ctx.createSerializer();
@@ -280,12 +302,12 @@ TEST_P(SerializeContainer, SizeHasVariableLength)
 {
   SerializationContext ctx{};
 
-  std::vector<uint8_t> src(GetParam());
-  std::vector<uint8_t> res{};
+  eastl::vector<uint8_t> src(GetParam());
+  eastl::vector<uint8_t> res{};
   ctx.createSerializer().container(
-    src, std::numeric_limits<size_t>::max(), EmptyFtor{});
+    src, eastl::numeric_limits<size_t>::max(), EmptyFtor{});
   ctx.createDeserializer().container(
-    res, std::numeric_limits<size_t>::max(), EmptyFtor{});
+    res, eastl::numeric_limits<size_t>::max(), EmptyFtor{});
 
   EXPECT_THAT(res.size(), Eq(src.size()));
   EXPECT_THAT(ctx.getBufferSize(),

@@ -6,6 +6,28 @@
 #include <bitsery/bitsery.h>
 #include <bitsery/traits/vector.h>
 
+void* __cdecl operator new[](size_t size, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
+void* __cdecl operator new[](size_t size, size_t alignement, size_t offset, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)alignement;
+	(void)offset;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
 class MyData
 {
   // define your private data
@@ -40,18 +62,17 @@ public:
 };
 
 // some helper types
-using Buffer = std::vector<uint8_t>;
+using Buffer = eastl::vector<uint8_t>;
 using Writer = bitsery::OutputBufferAdapter<Buffer>;
 using Reader = bitsery::InputBufferAdapter<Buffer>;
 
 int
 main()
 {
-
   // initialize our data
-  std::vector<MyData> data{};
+  eastl::vector<MyData> data{};
   data.emplace_back(145.4f, 84.48f);
-  std::vector<MyData> res{};
+  eastl::vector<MyData> res{};
 
   // create buffer
   Buffer buffer{};

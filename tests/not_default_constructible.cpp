@@ -21,19 +21,42 @@
 // SOFTWARE.
 
 #include <bitsery/ext/pointer.h>
-#include <bitsery/ext/std_map.h>
-#include <bitsery/ext/std_set.h>
-#include <bitsery/ext/std_smart_ptr.h>
-#include <bitsery/traits/forward_list.h>
-#include <forward_list>
+#include <bitsery/ext/eastl_map.h>
+#include <bitsery/ext/eastl_set.h>
+#include <bitsery/ext/eastl_smart_ptr.h>
+#include <bitsery/traits/slist.h>
+
+#include <EASTL/set.h>
 
 #include "serialization_test_utils.h"
 #include <gmock/gmock.h>
 
+void* __cdecl operator new[](size_t size, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
+void* __cdecl operator new[](size_t size, size_t alignement, size_t offset, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)alignement;
+	(void)offset;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
 using testing::ContainerEq;
 using testing::Eq;
 
-// forward declare, for testing with std::unordered_map
+// forward declare, for testing with eastl::unordered_map
 class HasherForNonDefaultConstructible;
 
 class NonDefaultConstructible
@@ -72,18 +95,18 @@ class HasherForNonDefaultConstructible
 public:
   size_t operator()(const NonDefaultConstructible& o) const
   {
-    return std::hash<int32_t>()(o.i);
+    return eastl::hash<int32_t>()(o.i);
   }
 };
 
 TEST(DeserializeNonDefaultConstructible, Container)
 {
   SerializationContext ctx{};
-  std::vector<NonDefaultConstructible> data{};
+  eastl::vector<NonDefaultConstructible> data{};
   data.emplace_back(1);
   data.emplace_back(2);
   data.emplace_back(3);
-  std::vector<NonDefaultConstructible> res{};
+  eastl::vector<NonDefaultConstructible> res{};
 
   ctx.createSerializer().container(data, 10);
   ctx.createDeserializer().container(res, 10);
@@ -95,9 +118,9 @@ TEST(DeserializeNonDefaultConstructible, Container)
 TEST(DeserializeNonDefaultConstructible, ResultContainerShouldShrink)
 {
   SerializationContext ctx{};
-  std::vector<NonDefaultConstructible> data{};
+  eastl::vector<NonDefaultConstructible> data{};
   data.emplace_back(1);
-  std::vector<NonDefaultConstructible> res{};
+  eastl::vector<NonDefaultConstructible> res{};
   res.emplace_back(2);
   res.emplace_back(3);
   res.emplace_back(4);
@@ -108,7 +131,7 @@ TEST(DeserializeNonDefaultConstructible, ResultContainerShouldShrink)
   EXPECT_THAT(res, ContainerEq(data));
 }
 
-TEST(DeserializeNonDefaultConstructible, ResultStdForwardListShouldShrink)
+TEST(DeserializeNonDefaultConstructible, ResultEastlSListShouldShrink)
 {
   // forward list doesn't have .erase function, bet has erase_after
   // in this case, if new size is 0 it must call clear, so we need to check two
@@ -116,9 +139,9 @@ TEST(DeserializeNonDefaultConstructible, ResultStdForwardListShouldShrink)
   {
     // 1) when result should have more than 0 elements
     SerializationContext ctx{};
-    std::forward_list<NonDefaultConstructible> data{};
+    eastl::slist<NonDefaultConstructible> data{};
     data.push_front(NonDefaultConstructible{ 1 });
-    std::forward_list<NonDefaultConstructible> res{};
+    eastl::slist<NonDefaultConstructible> res{};
     res.push_front(NonDefaultConstructible{ 21 });
     res.push_front(NonDefaultConstructible{ 14 });
 
@@ -134,8 +157,8 @@ TEST(DeserializeNonDefaultConstructible, ResultStdForwardListShouldShrink)
   {
     // 1) when result should have 0 elements
     SerializationContext ctx{};
-    std::forward_list<NonDefaultConstructible> data{};
-    std::forward_list<NonDefaultConstructible> res{};
+    eastl::slist<NonDefaultConstructible> data{};
+    eastl::slist<NonDefaultConstructible> res{};
     res.push_front(NonDefaultConstructible{ 1 });
     res.push_front(NonDefaultConstructible{ 14 });
 
@@ -148,10 +171,10 @@ TEST(DeserializeNonDefaultConstructible, ResultStdForwardListShouldShrink)
   {
     // also check if correctly expands if source is bigger than destination
     SerializationContext ctx{};
-    std::forward_list<NonDefaultConstructible> data{};
+    eastl::slist<NonDefaultConstructible> data{};
     data.push_front(NonDefaultConstructible{ 1 });
     data.push_front(NonDefaultConstructible{ 14 });
-    std::forward_list<NonDefaultConstructible> res{};
+    eastl::slist<NonDefaultConstructible> res{};
 
     ctx.createSerializer().container(data, 10);
     ctx.createDeserializer().container(res, 10);
@@ -164,31 +187,31 @@ TEST(DeserializeNonDefaultConstructible, ResultStdForwardListShouldShrink)
   }
 }
 
-TEST(DeserializeNonDefaultConstructible, StdSet)
+TEST(DeserializeNonDefaultConstructible, EastlSet)
 {
   SerializationContext ctx{};
-  std::set<NonDefaultConstructible> data;
+  eastl::set<NonDefaultConstructible> data;
   data.insert(NonDefaultConstructible{ 1 });
   data.insert(NonDefaultConstructible{ 2 });
-  std::set<NonDefaultConstructible> res{};
+  eastl::set<NonDefaultConstructible> res{};
   data.insert(NonDefaultConstructible{ 3 });
 
-  ctx.createSerializer().ext(data, bitsery::ext::StdSet{ 10 });
-  ctx.createDeserializer().ext(res, bitsery::ext::StdSet{ 10 });
+  ctx.createSerializer().ext(data, bitsery::ext::EastlSet{ 10 });
+  ctx.createDeserializer().ext(res, bitsery::ext::EastlSet{ 10 });
 
   EXPECT_THAT(res, ContainerEq(data));
 }
 
-TEST(DeserializeNonDefaultConstructible, StdMap)
+TEST(DeserializeNonDefaultConstructible, EastlMap)
 {
   SerializationContext ctx{};
-  std::unordered_map<NonDefaultConstructible,
+  eastl::unordered_map<NonDefaultConstructible,
                      NonDefaultConstructible,
                      HasherForNonDefaultConstructible>
     data;
   data.emplace(NonDefaultConstructible{ 2 }, NonDefaultConstructible{ 3 });
 
-  std::unordered_map<NonDefaultConstructible,
+  eastl::unordered_map<NonDefaultConstructible,
                      NonDefaultConstructible,
                      HasherForNonDefaultConstructible>
     res{};
@@ -197,7 +220,7 @@ TEST(DeserializeNonDefaultConstructible, StdMap)
 
   auto& ser = ctx.createSerializer();
   ser.ext(data,
-          bitsery::ext::StdMap{ 10 },
+          bitsery::ext::EastlMap{ 10 },
           [](decltype(ser)& ser,
              NonDefaultConstructible& key,
              NonDefaultConstructible& value) {
@@ -206,7 +229,7 @@ TEST(DeserializeNonDefaultConstructible, StdMap)
           });
   auto& des = ctx.createDeserializer();
   des.ext(res,
-          bitsery::ext::StdMap{ 10 },
+          bitsery::ext::EastlMap{ 10 },
           [](decltype(des)& des,
              NonDefaultConstructible& key,
              NonDefaultConstructible& value) {
@@ -220,9 +243,9 @@ TEST(DeserializeNonDefaultConstructible, StdMap)
 struct NonPolymorphicPointers
 {
   NonDefaultConstructible* pp;
-  std::unique_ptr<NonDefaultConstructible> up;
-  std::shared_ptr<NonDefaultConstructible> sp;
-  std::weak_ptr<NonDefaultConstructible> wp;
+  eastl::unique_ptr<NonDefaultConstructible> up;
+  eastl::shared_ptr<NonDefaultConstructible> sp;
+  eastl::weak_ptr<NonDefaultConstructible> wp;
 };
 
 template<typename S>
@@ -230,9 +253,9 @@ void
 serialize(S& s, NonPolymorphicPointers& o)
 {
   s.ext(o.pp, bitsery::ext::PointerOwner{});
-  s.ext(o.up, bitsery::ext::StdSmartPtr{});
-  s.ext(o.sp, bitsery::ext::StdSmartPtr{});
-  s.ext(o.wp, bitsery::ext::StdSmartPtr{});
+  s.ext(o.up, bitsery::ext::EastlSmartPtr{});
+  s.ext(o.sp, bitsery::ext::EastlSmartPtr{});
+  s.ext(o.wp, bitsery::ext::EastlSmartPtr{});
 }
 
 TEST(DeserializeNonDefaultConstructible, NonPolymorphicPointerAndSmartPointer)
@@ -243,8 +266,8 @@ TEST(DeserializeNonDefaultConstructible, NonPolymorphicPointerAndSmartPointer)
   NonPolymorphicPointers data{};
   data.pp = new NonDefaultConstructible{ 3 };
   data.up =
-    std::unique_ptr<NonDefaultConstructible>(new NonDefaultConstructible{ 54 });
-  data.sp = std::shared_ptr<NonDefaultConstructible>(
+    eastl::unique_ptr<NonDefaultConstructible>(new NonDefaultConstructible{ 54 });
+  data.sp = eastl::shared_ptr<NonDefaultConstructible>(
     new NonDefaultConstructible{ -481 });
   data.wp = data.sp;
 
@@ -328,9 +351,9 @@ struct PolymorphicBaseClass<PolymorphicNDCBase>
 struct PolymorphicPointers
 {
   PolymorphicNDCBase* pp;
-  std::unique_ptr<PolymorphicNDCBase> up;
-  std::shared_ptr<PolymorphicNDCBase> sp;
-  std::weak_ptr<PolymorphicNDCBase> wp;
+  eastl::unique_ptr<PolymorphicNDCBase> up;
+  eastl::shared_ptr<PolymorphicNDCBase> sp;
+  eastl::weak_ptr<PolymorphicNDCBase> wp;
 };
 
 template<typename S>
@@ -338,22 +361,22 @@ void
 serialize(S& s, PolymorphicPointers& o)
 {
   s.ext(o.pp, bitsery::ext::PointerOwner{});
-  s.ext(o.up, bitsery::ext::StdSmartPtr{});
-  s.ext(o.sp, bitsery::ext::StdSmartPtr{});
-  s.ext(o.wp, bitsery::ext::StdSmartPtr{});
+  s.ext(o.up, bitsery::ext::EastlSmartPtr{});
+  s.ext(o.sp, bitsery::ext::EastlSmartPtr{});
+  s.ext(o.wp, bitsery::ext::EastlSmartPtr{});
 }
 
 TEST(DeserializeNonDefaultConstructible, PolymorphicPointerAndSmartPointer)
 {
   using TContext =
-    std::tuple<bitsery::ext::PointerLinkingContext,
+    eastl::tuple<bitsery::ext::PointerLinkingContext,
                bitsery::ext::PolymorphicContext<bitsery::ext::StandardRTTI>>;
   using SerContext = BasicSerializationContext<TContext>;
   SerContext ctx{};
   PolymorphicPointers data{};
   data.pp = new PolymorphicNDC1{ -4 };
-  data.up = std::unique_ptr<PolymorphicNDCBase>(new PolymorphicNDC2{ 54 });
-  data.sp = std::shared_ptr<PolymorphicNDCBase>(new PolymorphicNDC1{ 15 });
+  data.up = eastl::unique_ptr<PolymorphicNDCBase>(new PolymorphicNDC2{ 54 });
+  data.sp = eastl::shared_ptr<PolymorphicNDCBase>(new PolymorphicNDC1{ 15 });
   data.wp = data.sp;
 
   PolymorphicPointers res{};
@@ -361,9 +384,9 @@ TEST(DeserializeNonDefaultConstructible, PolymorphicPointerAndSmartPointer)
   TContext serCtx{};
   TContext desCtx{};
 
-  std::get<1>(serCtx).registerBasesList<typename SerContext::TSerializer>(
+  eastl::get<1>(serCtx).registerBasesList<typename SerContext::TSerializer>(
     bitsery::ext::PolymorphicClassesList<PolymorphicNDCBase>{});
-  std::get<1>(desCtx).registerBasesList<typename SerContext::TDeserializer>(
+  eastl::get<1>(desCtx).registerBasesList<typename SerContext::TDeserializer>(
     bitsery::ext::PolymorphicClassesList<PolymorphicNDCBase>{});
 
   ctx.createSerializer(serCtx).object(data);
@@ -389,6 +412,6 @@ TEST(DeserializeNonDefaultConstructible, PolymorphicPointerAndSmartPointer)
   EXPECT_THAT(*resup, Eq(*dataup));
   EXPECT_THAT(*ressp, Eq(*datasp));
   EXPECT_THAT(*reswp, Eq(*datawp));
-  std::get<0>(serCtx).clearSharedState();
-  std::get<0>(desCtx).clearSharedState();
+  eastl::get<0>(serCtx).clearSharedState();
+  eastl::get<0>(desCtx).clearSharedState();
 }

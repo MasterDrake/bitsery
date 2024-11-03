@@ -23,12 +23,32 @@
 #include "serialization_test_utils.h"
 #include <gmock/gmock.h>
 
-#if __cplusplus > 201402L
-
-#include <bitsery/ext/std_optional.h>
+#include <bitsery/ext/eastl_optional.h>
 #include <bitsery/ext/value_range.h>
 
-using StdOptional = bitsery::ext::StdOptional;
+void* __cdecl operator new[](size_t size, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
+void* __cdecl operator new[](size_t size, size_t alignement, size_t offset, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)alignement;
+	(void)offset;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
+using EastlOptional = bitsery::ext::EastlOptional;
 
 using BPSer = SerializationContext::TSerializer::BPEnabledType;
 using BPDes = SerializationContext::TDeserializer::BPEnabledType;
@@ -39,14 +59,14 @@ template<typename T>
 void
 test(SerializationContext& ctx, const T& v, T& r)
 {
-  ctx.createSerializer().ext4b(v, StdOptional{});
-  ctx.createDeserializer().ext4b(r, StdOptional{});
+  ctx.createSerializer().ext4b(v, EastlOptional{});
+  ctx.createDeserializer().ext4b(r, EastlOptional{});
 }
 
-TEST(SerializeExtensionStdOptional, EmptyOptional)
+TEST(SerializeExtensionEastlOptional, EmptyOptional)
 {
-  std::optional<int32_t> t1{};
-  std::optional<int32_t> r1{};
+  eastl::optional<int32_t> t1{};
+  eastl::optional<int32_t> r1{};
 
   SerializationContext ctx1;
   test(ctx1, t1, r1);
@@ -60,37 +80,37 @@ TEST(SerializeExtensionStdOptional, EmptyOptional)
   EXPECT_THAT(t1, Eq(r1));
 }
 
-TEST(SerializeExtensionStdOptional, OptionalHasValue)
+TEST(SerializeExtensionEastlOptional, OptionalHasValue)
 {
-  std::optional<int32_t> t1{ 43 };
-  std::optional<int32_t> r1{ 52 };
+  eastl::optional<int32_t> t1{ 43 };
+  eastl::optional<int32_t> r1{ 52 };
 
   SerializationContext ctx1;
   test(ctx1, t1, r1);
   EXPECT_THAT(ctx1.getBufferSize(), Eq(1 + sizeof(int)));
   EXPECT_THAT(t1.value(), Eq(r1.value()));
 
-  r1 = std::optional<int>{};
+  r1 = eastl::optional<int>{};
   SerializationContext ctx2;
   test(ctx2, t1, r1);
   EXPECT_THAT(ctx2.getBufferSize(), Eq(1 + sizeof(int)));
   EXPECT_THAT(t1.value(), Eq(r1.value()));
 }
 
-TEST(SerializeExtensionStdOptional, AlignAfterStateWriteRead)
+TEST(SerializeExtensionEastlOptional, AlignAfterStateWriteRead)
 {
-  std::optional<int32_t> t1{ 43 };
-  std::optional<int32_t> r1{ 52 };
+  eastl::optional<int32_t> t1{ 43 };
+  eastl::optional<int32_t> r1{ 52 };
   auto range = bitsery::ext::ValueRange<int>{ 40, 60 };
 
   SerializationContext ctx;
   ctx.createSerializer().enableBitPacking([&t1, &range](BPSer& ser) {
-    ser.ext(t1, StdOptional(true), [&range](BPSer& ser, int32_t& v) {
+    ser.ext(t1, EastlOptional(true), [&range](BPSer& ser, int32_t& v) {
       ser.ext(v, range);
     });
   });
   ctx.createDeserializer().enableBitPacking([&r1, &range](BPDes& des) {
-    des.ext(r1, StdOptional(true), [&range](BPDes& des, int32_t& v) {
+    des.ext(r1, EastlOptional(true), [&range](BPDes& des, int32_t& v) {
       des.ext(v, range);
     });
   });
@@ -99,20 +119,20 @@ TEST(SerializeExtensionStdOptional, AlignAfterStateWriteRead)
   EXPECT_THAT(t1.value(), Eq(r1.value()));
 }
 
-TEST(SerializeExtensionStdOptional, NoAlignAfterStateWriteRead)
+TEST(SerializeExtensionEastlOptional, NoAlignAfterStateWriteRead)
 {
-  std::optional<int32_t> t1{ 43 };
-  std::optional<int32_t> r1{ 52 };
+  eastl::optional<int32_t> t1{ 43 };
+  eastl::optional<int32_t> r1{ 52 };
   auto range = bitsery::ext::ValueRange<int>{ 40, 60 };
 
   SerializationContext ctx;
   ctx.createSerializer().enableBitPacking([&t1, &range](BPSer& ser) {
-    ser.ext(t1, StdOptional(false), [&range](BPSer& ser, int32_t& v) {
+    ser.ext(t1, EastlOptional(false), [&range](BPSer& ser, int32_t& v) {
       ser.ext(v, range);
     });
   });
   ctx.createDeserializer().enableBitPacking([&r1, &range](BPDes& des) {
-    des.ext(r1, StdOptional(false), [&range](BPDes& des, int32_t& v) {
+    des.ext(r1, EastlOptional(false), [&range](BPDes& des, int32_t& v) {
       des.ext(v, range);
     });
   });
@@ -121,10 +141,3 @@ TEST(SerializeExtensionStdOptional, NoAlignAfterStateWriteRead)
   EXPECT_THAT(ctx.getBufferSize(), Eq(1));
   EXPECT_THAT(t1.value(), Eq(r1.value()));
 }
-
-#elif defined(_MSC_VER)
-#pragma message(                                                               \
-  "C++17 and /Zc:__cplusplus option is required to enable std::optional tests")
-#else
-#pragma message("C++17 is required to enable std::optional tests")
-#endif

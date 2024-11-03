@@ -20,12 +20,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef BITSERY_BRIEF_SYNTAX_TYPE_STD_UNORDERED_SET_H
-#define BITSERY_BRIEF_SYNTAX_TYPE_STD_UNORDERED_SET_H
+#ifndef BITSERY_BRIEF_SYNTAX_TYPE_EASTL_UNORDERED_SET_H
+#define BITSERY_BRIEF_SYNTAX_TYPE_EASTL_UNORDERED_SET_H
 
-#include "../ext/std_set.h"
-#include <limits>
-#include <unordered_set>
+#include "../ext/eastl_set.h"
+#include <EASTL/numeric_limits.h>
+#include <EASTL/unordered_set.h>
 
 namespace bitsery {
 template<typename S,
@@ -35,10 +35,10 @@ template<typename S,
          typename Allocator>
 void
 serialize(S& s,
-          std::unordered_set<Key, Hash, KeyEqual, Allocator>& obj,
-          size_t maxSize = std::numeric_limits<size_t>::max())
+          eastl::unordered_set<Key, Hash, KeyEqual, Allocator>& obj,
+          size_t maxSize = eastl::numeric_limits<size_t>::max())
 {
-  s.ext(obj, ext::StdSet{ maxSize });
+  s.ext(obj, ext::EastlSet{ maxSize });
 }
 
 template<typename S,
@@ -48,12 +48,12 @@ template<typename S,
          typename Allocator>
 void
 serialize(S& s,
-          std::unordered_multiset<Key, Hash, KeyEqual, Allocator>& obj,
-          size_t maxSize = std::numeric_limits<size_t>::max())
+          eastl::unordered_multiset<Key, Hash, KeyEqual, Allocator>& obj,
+          size_t maxSize = eastl::numeric_limits<size_t>::max())
 {
-  s.ext(obj, ext::StdSet{ maxSize });
+  s.ext(obj, ext::EastlSet{ maxSize });
 }
 
 }
 
-#endif // BITSERY_BRIEF_SYNTAX_TYPE_STD_UNORDERED_SET_H
+#endif // BITSERY_BRIEF_SYNTAX_TYPE_EASTL_UNORDERED_SET_H

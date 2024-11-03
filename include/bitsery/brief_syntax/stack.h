@@ -20,21 +20,21 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef BITSERY_BRIEF_SYNTAX_TYPE_STD_STACK_H
-#define BITSERY_BRIEF_SYNTAX_TYPE_STD_STACK_H
+#ifndef BITSERY_BRIEF_SYNTAX_TYPE_EASTL_STACK_H
+#define BITSERY_BRIEF_SYNTAX_TYPE_EASTL_STACK_H
 
-#include "../ext/std_stack.h"
-#include <limits>
+#include "../ext/eastl_stack.h"
+#include <EASTL/numeric_limits.h>
 
 namespace bitsery {
 template<typename S, typename T, typename C>
 void
 serialize(S& s,
-          std::stack<T, C>& obj,
-          size_t maxSize = std::numeric_limits<size_t>::max())
+          eastl::stack<T, C>& obj,
+          size_t maxSize = eastl::numeric_limits<size_t>::max())
 {
-  s.ext(obj, ext::StdStack{ maxSize });
+  s.ext(obj, ext::EastlStack{ maxSize });
 }
 }
 
-#endif // BITSERY_BRIEF_SYNTAX_TYPE_STD_STACK_H
+#endif // BITSERY_BRIEF_SYNTAX_TYPE_EASTL_STACK_H

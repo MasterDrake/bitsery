@@ -20,17 +20,17 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef BITSERY_BRIEF_SYNTAX_TYPE_STD_OPTIONAL_H
-#define BITSERY_BRIEF_SYNTAX_TYPE_STD_OPTIONAL_H
+#ifndef BITSERY_BRIEF_SYNTAX_TYPE_EASTL_OPTIONAL_H
+#define BITSERY_BRIEF_SYNTAX_TYPE_EASTL_OPTIONAL_H
 
-#include "../ext/std_optional.h"
+#include "../ext/eastl_optional.h"
 
 namespace bitsery {
 template<typename S, typename Ts>
 void
-serialize(S& s, std::optional<Ts>& obj)
+serialize(S& s, eastl::optional<Ts>& obj)
 {
-  s.ext(obj, ext::StdOptional{});
+  s.ext(obj, ext::EastlOptional{});
 }
 } // namespace bitsery
-#endif
+#endif BITSERY_BRIEF_SYNTAX_TYPE_EASTL_OPTIONAL_H

@@ -20,25 +20,25 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef BITSERY_BRIEF_SYNTAX_TYPE_STD_CHRONO_H
-#define BITSERY_BRIEF_SYNTAX_TYPE_STD_CHRONO_H
+#ifndef BITSERY_BRIEF_SYNTAX_TYPE_EASTL_CHRONO_H
+#define BITSERY_BRIEF_SYNTAX_TYPE_EASTL_CHRONO_H
 
-#include "../ext/std_chrono.h"
+#include "../ext/eastl_chrono.h"
 
 namespace bitsery {
 template<typename S, typename T, typename P>
 void
-serialize(S& s, std::chrono::duration<T, P>& obj)
+serialize(S& s, eastl::chrono::duration<T, P>& obj)
 {
-  s.template ext<sizeof(T)>(obj, ext::StdDuration{});
+  s.template ext<sizeof(T)>(obj, ext::EastlDuration{});
 }
 
 template<typename S, typename C, typename T, typename P>
 void
-serialize(S& s, std::chrono::time_point<C, std::chrono::duration<T, P>>& obj)
+serialize(S& s, eastl::chrono::time_point<C, eastl::chrono::duration<T, P>>& obj)
 {
-  s.template ext<sizeof(T)>(obj, ext::StdTimePoint{});
+  s.template ext<sizeof(T)>(obj, ext::EastlTimePoint{});
 }
 }
 
-#endif // BITSERY_BRIEF_SYNTAX_TYPE_STD_CHRONO_H
+#endif // BITSERY_BRIEF_SYNTAX_TYPE_EASTL_CHRONO_H
