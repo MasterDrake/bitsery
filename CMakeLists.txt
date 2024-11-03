@@ -4,14 +4,17 @@ project(bitsery
         VERSION 5.2.4)
 
 #======== build options ===================================
-option(BITSERY_BUILD_EXAMPLES "Build examples" OFF)
-option(BITSERY_BUILD_TESTS "Build tests" OFF)
+option(BITSERY_BUILD_EXAMPLES "Build examples" ON)
+option(BITSERY_BUILD_TESTS "Build tests" ON)
 
 #============= setup target ======================
 add_library(bitsery INTERFACE)
 # create alias, so that user could always write target_link_libraries(... Bitsery::bitsery)
 # despite of bitsery target is imported or not
 add_library(Bitsery::bitsery ALIAS bitsery)
+
+find_package(EASTL CONFIG REQUIRED)
+target_link_libraries(bitsery INTERFACE EASTL)
 
 include(GNUInstallDirs)
 target_include_directories(bitsery INTERFACE
