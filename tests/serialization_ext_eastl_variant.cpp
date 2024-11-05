@@ -23,6 +23,7 @@
 #include "serialization_test_utils.h"
 #include <gmock/gmock.h>
 
+#if __cplusplus >= 201703L
 void* __cdecl operator new[](size_t size, const char* name, int flags, unsigned debugFlags, const char* file, int line)
 {
 	(void)name;
@@ -44,7 +45,6 @@ void* __cdecl operator new[](size_t size, size_t alignement, size_t offset, cons
 	(void)line;
 	return new uint8_t[size];
 }
-
 
 using testing::Eq;
 
