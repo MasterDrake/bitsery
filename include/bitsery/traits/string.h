@@ -63,7 +63,7 @@ struct TextTraits<T[N]>
 
   static size_t length(const T (&container)[N])
   {
-    return eastl::char_traits<T>::length(container);
+    return eastl::CharStrlen(container);
   }
 };
 

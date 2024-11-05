@@ -48,12 +48,12 @@ void* __cdecl operator new[](size_t size, size_t alignement, size_t offset, cons
 	return new uint8_t[size];
 }
 
-using StdBitset = bitsery::ext::StdBitset;
+using EastlBitset = bitsery::ext::EastlBitset;
 using ValueRange = bitsery::ext::ValueRange<int>;
 
 using testing::Eq;
 
-TEST(SerializeExtensionStdBitset, BitsetSmallerThanULongLong)
+TEST(SerializeExtensionEastlBitset, BitsetSmallerThanULongLong)
 {
   SerializationContext ctx;
 
@@ -65,12 +65,12 @@ TEST(SerializeExtensionStdBitset, BitsetSmallerThanULongLong)
   data[30] = true;
   eastl::bitset<31> res;
 
-  ctx.createSerializer().ext(data, StdBitset{});
-  ctx.createDeserializer().ext(res, StdBitset{});
+  ctx.createSerializer().ext(data, EastlBitset{});
+  ctx.createDeserializer().ext(res, EastlBitset{});
   EXPECT_THAT(res, Eq(data));
 }
 
-TEST(SerializeExtensionStdBitset, BitsetSmallerThanULongLong2)
+TEST(SerializeExtensionEastlBitset, BitsetSmallerThanULongLong2)
 {
   SerializationContext ctx;
 
@@ -78,12 +78,12 @@ TEST(SerializeExtensionStdBitset, BitsetSmallerThanULongLong2)
   data.set();
   eastl::bitset<9> res;
 
-  ctx.createSerializer().ext(data, StdBitset{});
-  ctx.createDeserializer().ext(res, StdBitset{});
+  ctx.createSerializer().ext(data, EastlBitset{});
+  ctx.createDeserializer().ext(res, EastlBitset{});
   EXPECT_THAT(res, Eq(data));
 }
 
-TEST(SerializeExtensionStdBitset, BitsetLargerThanULongLong)
+TEST(SerializeExtensionEastlBitset, BitsetLargerThanULongLong)
 {
   SerializationContext ctx;
 
@@ -95,12 +95,12 @@ TEST(SerializeExtensionStdBitset, BitsetLargerThanULongLong)
   data[191] = true;
   eastl::bitset<200> res;
 
-  ctx.createSerializer().ext(data, StdBitset{});
-  ctx.createDeserializer().ext(res, StdBitset{});
+  ctx.createSerializer().ext(data, EastlBitset{});
+  ctx.createDeserializer().ext(res, EastlBitset{});
   EXPECT_THAT(res, Eq(data));
 }
 
-TEST(SerializeExtensionStdBitset, BitsetSmallerThanULongLongBitPackingEnabled)
+TEST(SerializeExtensionEastlBitset, BitsetSmallerThanULongLongBitPackingEnabled)
 {
   SerializationContext ctx;
 
@@ -113,12 +113,12 @@ TEST(SerializeExtensionStdBitset, BitsetSmallerThanULongLongBitPackingEnabled)
 
   ctx.createSerializer().enableBitPacking(
     [&data, &other_data](SerializationContext::TSerializerBPEnabled& sbp) {
-      sbp.ext(data, StdBitset{});
+      sbp.ext(data, EastlBitset{});
       sbp.ext(other_data, ValueRange{ 1000, 1015 });
     });
   ctx.createDeserializer().enableBitPacking(
     [&res, &other_res](SerializationContext::TDeserializerBPEnabled& dbp) {
-      dbp.ext(res, StdBitset{});
+      dbp.ext(res, EastlBitset{});
       dbp.ext(other_res, ValueRange{ 1000, 1015 });
     });
   EXPECT_THAT(res, Eq(data));
@@ -126,7 +126,7 @@ TEST(SerializeExtensionStdBitset, BitsetSmallerThanULongLongBitPackingEnabled)
   EXPECT_THAT(ctx.getBufferSize(), Eq(2));
 }
 
-TEST(SerializeExtensionStdBitset, BitsetLargerThanULongLongBitPackingEnabled)
+TEST(SerializeExtensionEastlBitset, BitsetLargerThanULongLongBitPackingEnabled)
 {
   SerializationContext ctx;
 
@@ -140,12 +140,12 @@ TEST(SerializeExtensionStdBitset, BitsetLargerThanULongLongBitPackingEnabled)
 
   ctx.createSerializer().enableBitPacking(
     [&data, &other_data](SerializationContext::TSerializerBPEnabled& sbp) {
-      sbp.ext(data, StdBitset{});
+      sbp.ext(data, EastlBitset{});
       sbp.ext(other_data, ValueRange{ 1000, 1015 });
     });
   ctx.createDeserializer().enableBitPacking(
     [&res, &other_res](SerializationContext::TDeserializerBPEnabled& dbp) {
-      dbp.ext(res, StdBitset{});
+      dbp.ext(res, EastlBitset{});
       dbp.ext(other_res, ValueRange{ 1000, 1015 });
     });
   EXPECT_THAT(res, Eq(data));

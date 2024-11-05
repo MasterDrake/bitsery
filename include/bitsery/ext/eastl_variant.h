@@ -25,7 +25,7 @@
 
 #include "../traits/core/traits.h"
 #include "utils/composite_type_overloads.h"
-#include <ESATL/variant.h>
+#include <EASTL/variant.h>
 
 namespace bitsery {
 namespace ext {
@@ -75,8 +75,7 @@ public:
 
       TElem item = ::bitsery::Access::create<TElem>();
       this->serializeType(des, item);
-      data =
-        eastl::variant<Ts...>(eastl::in_place_index_t<Index>{}, eastl::move(item));
+      data = eastl::variant<Ts...>(eastl::in_place<Index>, eastl::move(item));
     });
   }
 };

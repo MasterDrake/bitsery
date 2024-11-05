@@ -50,7 +50,7 @@ public:
 
     } else {
       // more performant way
-      auto data = obj.to_ullong();
+      auto data = obj.to_uint64();
       for (size_t i = 0u; i < BYTES; ++i) {
         ser.value1b(static_cast<uint8_t>(data & 0xFF));
         data >>= 8;

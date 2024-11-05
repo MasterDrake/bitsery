@@ -32,7 +32,7 @@
 
 ### Bug fixes
 * fix missing headers for GCC11, also added test to check includes #82 (thanks to [michael-mueller-git](https://github.com/michael-mueller-git))
-* fixed **StdBitset** to build on macOS (proxy type, returned by `[]` operator wasn't correctly converted to unsigned integral type).
+* fixed **EastlBitset** to build on macOS (proxy type, returned by `[]` operator wasn't correctly converted to unsigned integral type).
 
 ### Other notes
 * migrated to [Github actions](https://docs.github.com/en/actions) for running tests.
@@ -45,13 +45,13 @@
 * `Input/OutputBufferAdapter` now statically asserts that underlying type is 1byte in size.
 
 ### Bug fixes
-* fixed serialization in `StdBitset` when it's size is less then `unsigned long long`.
+* fixed serialization in `EastlBitset` when it's size is less then `unsigned long long`.
 
 # [5.2.0](https://github.com/fraillt/bitsery/compare/v5.1.0...v5.2.0) (2020-11-09)
 
 ### Features
 
-* new extension **StdBitset**.
+* new extension **EastlBitset**.
 
 ### Improvements
 * removed unused variable warnings in release build, where `max_size` variable during serialization is ignored.
@@ -83,7 +83,7 @@ This provides additional optimization opportunities.
 
 ### Bug fixes
 * fixed a bug when deserializing non-default constructible containers (thanks to [nicktrandafil](https://github.com/nicktrandafil)).
-* fixed issue with a brace initialization in extension StdMap and StdSet. It was working on major compilers, but it wasn't C++11 compatible. 
+* fixed issue with a brace initialization in extension EastlMap and EastlSet. It was working on major compilers, but it wasn't C++11 compatible. 
 More info about it in [stackoverflow](https://stackoverflow.com/questions/25612262/why-does-auto-x3-deduce-an-initializer-list) (thanks to [BotellaA](https://github.com/BotellaA)).   
 
 ### Other notes
@@ -109,7 +109,7 @@ Additionally, it provides more customization options for serialization/deseriali
 If you can trust your data this will improve deserialization performance. Error checks are enabled by default.
 * all memory allocation in the library can be customized using memory resource (similar to c++ 17 memory resource)
   * contexts that internally requires to allocate memory are: *PointerLinkingContext, PolymorphicContext, and InheritanceContext*.
-  * extensions, for pointers like types, that allocate memory are: *PointerOwner* and *StdSharedPtr*.
+  * extensions, for pointers like types, that allocate memory are: *PointerOwner* and *EastlSharedPtr*.
   More information about pointer extension can be found [here](doc/design/pointers.md).
 
 ### Breaking changes
@@ -167,12 +167,12 @@ e.g. instead of writing `s.container(obj, [](S& s, MyData& data) {s.ext(data, My
 # [4.6.0](https://github.com/fraillt/bitsery/compare/v4.5.1...v4.6.0) (2019-03-12)
 
 ### Features
-* new extensions **StdTuple** and **StdVariant** for `eastl::tuple` and `eastl::variant`. These are the first extensions that requires C++17, or higher, standard enabled.
+* new extensions **EastlTuple** and **EastlVariant** for `eastl::tuple` and `eastl::variant`. These are the first extensions that requires C++17, or higher, standard enabled.
 Although `eastl::tuple` is C++11 type, but from usage perspective it has exactly the same requirements as `eastl::variant` and relies heavily on having class template argument deduction guides to make it convenient to use.
-You can easily use `eastl::tuple` without any extension at all, so the main motivation was to create convenient interface for **StdVariant** and use the same interface for **StdTuple** as well.
+You can easily use `eastl::tuple` without any extension at all, so the main motivation was to create convenient interface for **EastlVariant** and use the same interface for **EastlTuple** as well.
   * instead of providing custom lambda to overload each type in tuple or variant, there was added several helper callable objects.
   **OverloadValue** wrapper around `s.value<N>(o)`, **OverloadExtValue** wrapper around `s.ext<N>(o, Ext{})` and **OverloadExtObject** wrapper around `s.ext(o, Ext{})`.
-* new extensions **StdDuration** and **StdTimePoint** for `eastl::chrono::duration` and `eastl::chrono::time_point`.
+* new extensions **EastlDuration** and **EastlTimePoint** for `eastl::chrono::duration` and `eastl::chrono::time_point`.
 
 ### Improvements
 tests now uses `gtest_discover_tests` function, to automatically discover tests, which requires CMake 3.10.
@@ -192,12 +192,12 @@ tests now uses `gtest_discover_tests` function, to automatically discover tests,
 It is not necessary to enforce class invariant immediately, because internal object representation will be overriden anyway.
 
 ### Improvements
-* `StdSmartPtr` supports `eastl::unique_ptr` with custom deleter.
+* `EastlSmartPtr` supports `eastl::unique_ptr` with custom deleter.
 * `*InputBufferAdapter`(all) can also accept const buffer;
 
 ### Bug fixes
-* fixed deserialization in `bitsery/ext/std_map{set}` when target container is not empty.
-* added missing template parameters for specializations on `std` containers in multiple files in `bitsery/ext/*`.
+* fixed deserialization in `bitsery/ext/eastl_map{set}` when target container is not empty.
+* added missing template parameters for specializations on `eastl` containers in multiple files in `bitsery/ext/*`.
 
 # [4.4.0](https://github.com/fraillt/bitsery/compare/v4.3.0...v4.4.0) (2019-01-08)
 
@@ -246,7 +246,7 @@ struct MyHierarchy<Shape>: bitsery::ext::bitsery::ext::PolymorphicClassesList<My
 * added runtime polymorphism support for pointer like types (raw and smart pointers).
 In order to enable polymorphism new **PolymorphicContext** was created. It provides capability to register classes with serializer/deserializer.
   * runtime polymorphism can be customized, by replacing **StandardRTTI** from <bitsery/ext/utils/rtti_utils.h> header.
-* added smart pointers support for eastl::unique_ptr, eastl::shared_ptr and eastl::weak_ptr via **StdSmartPtr** extension.
+* added smart pointers support for eastl::unique_ptr, eastl::shared_ptr and eastl::weak_ptr via **EastlSmartPtr** extension.
 * new **UnsafeInputBufferAdapter** doesn't check for buffer size on deserialization, on some compilers can improve deserialization performance up to ~40%.
 
 ### Improvements
@@ -349,7 +349,7 @@ This syntax no longer requires to specify explicit fundamental type sizes and co
 Be careful when using deserializing untrusted data and make sure to enforce fundamental type sizes when using on multiple platforms.
 (use helper function *assertFundamentalTypeSizes* to enforce type sizes for multiple platforms)
 * added streaming support, by introducing new **adapter** concept. Two adapter implementations is available: stream adapter, or buffer adapter.
-* added missing std containers support: forward_list, deque, stack, queue, priority_queue, set, multiset, unordered_set, unordered_multiset.
+* added missing Eastl containers support: forward_list, deque, stack, queue, priority_queue, set, multiset, unordered_set, unordered_multiset.
 
 ### Breaking changes
 

@@ -1,12 +1,33 @@
 #include <bitsery/adapter/buffer.h>
 #include <bitsery/bitsery.h>
 #include <bitsery/traits/vector.h>
-// include extensions to work with tuples and variants
-// these extesions only work with C++17
+// include extensions to work with tuples and variants these extesions only work with C++17
+
+void* __cdecl operator new[](size_t size, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
+void* __cdecl operator new[](size_t size, size_t alignement, size_t offset, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)alignement;
+	(void)offset;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
 
 #if __cplusplus > 201402L
-#include <bitsery/ext/std_tuple.h>
-#include <bitsery/ext/std_variant.h>
+#include <bitsery/ext/eastl_tuple.h>
+#include <bitsery/ext/eastl_variant.h>
 // let's include this extension to make it more interesting :)
 #include <bitsery/ext/compact_value.h>
 
@@ -44,13 +65,13 @@ serialize(S& s, MyVariant& o)
   // serializer and type as arguments
   s.ext(
     o,
-    bitsery::ext::StdVariant{
+    bitsery::ext::EastlVariant{
       // specify how to serialize tuple by creating a lambda
       [](S& s, MyTuple& o) {
-        // StdTuple is used exactly the same as StdVariant
+        // EastlTuple is used exactly the same as EastlVariant
         s.ext(
           o,
-          bitsery::ext::StdTuple{
+          bitsery::ext::EastlTuple{
             // this is convenient callable object to specify integral value size
             // it is different equivalent to lambda [](auto& s, float&o) {
             // s.value4b(o);}
@@ -65,7 +86,7 @@ serialize(S& s, MyVariant& o)
       // can as well compose the same functionality
       // with OverloadExtObject, like this:
       // (comment out MyTuple lambda, and uncomment this)
-      // ext::OverloadExtObject<MyTuple, ext::StdTuple<ext::OverloadValue<float,
+      // ext::OverloadExtObject<MyTuple, ext::EastlTuple<ext::OverloadValue<float,
       // 4>>>{},
 
       // we can also override default 'serialize' function by creating an
@@ -98,10 +119,8 @@ using InputAdapter = bitsery::InputBufferAdapter<Buffer>;
 int
 main()
 {
-
   // set some random data
-  MyVariant data{ MyTuple{ -7549,
-                           { { -451, 2, 968, 75, 4, 156, 49 }, 874.4f } } };
+  MyVariant data{ MyTuple{ -7549, { { -451, 2, 968, 75, 4, 156, 49 }, 874.4f } } };
   MyVariant res{};
 
   // create buffer to store data
@@ -114,8 +133,7 @@ main()
   // same as serialization, but returns deserialization state as a pair
   // first = error code, second = is buffer was successfully read from begin to
   // the end.
-  auto state = bitsery::quickDeserialization<InputAdapter>(
-    { buffer.begin(), writtenSize }, res);
+  auto state = bitsery::quickDeserialization<InputAdapter>({ buffer.begin(), writtenSize }, res);
 
   assert(state.first == bitsery::ReaderError::NoError && state.second);
   assert(data == res);

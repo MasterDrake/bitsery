@@ -57,7 +57,7 @@ TEST(SerializeText, BasicString)
   ctx.createSerializer().text<sizeof(eastl::string::value_type)>(t1, 1000);
   ctx.createDeserializer().text<sizeof(eastl::string::value_type)>(res, 1000);
 
-  EXPECT_THAT(res, StrEq(t1));
+  EXPECT_THAT(res.c_str(), StrEq(t1.c_str()));
   EXPECT_THAT(res, ContainerEq(t1));
 }
 
@@ -87,11 +87,11 @@ TEST(SerializeText, BasicStringUseSizeMethodNotNullterminatedLength)
   ctx.createSerializer().text<VSIZE>(t1, 1000);
   ctx.createDeserializer().text<VSIZE>(wres, 1000);
 
-  EXPECT_THAT(wres, StrEq(t1));
+  EXPECT_THAT(wres.c_str(), StrEq(t1.c_str()));
   EXPECT_THAT(wres.size(), Eq(t1.size()));
   EXPECT_THAT(
     wres.size(),
-    Gt(eastl::char_traits<eastl::wstring::value_type>::length(t1.data())));
+    Gt(eastl::CharStrlen(t1.data())));
 
   SerializationContext ctx2;
   eastl::string t2("\0no one cares what is there", 10);
@@ -99,14 +99,14 @@ TEST(SerializeText, BasicStringUseSizeMethodNotNullterminatedLength)
   ctx2.createSerializer().text<sizeof(eastl::string::value_type)>(t2, 1000);
   ctx2.createDeserializer().text<sizeof(eastl::string::value_type)>(res, 1000);
 
-  EXPECT_THAT(res, StrEq(t2));
+  EXPECT_THAT(res.c_str(), StrEq(t2.c_str()));
   EXPECT_THAT(res.size(), Eq(t2.size()));
 
   SerializationContext ctx3;
   eastl::string t3("never ending buffer that doesnt fit in this string", 10);
   ctx3.createSerializer().text<sizeof(eastl::string::value_type)>(t3, 1000);
   ctx3.createDeserializer().text<sizeof(eastl::string::value_type)>(res, 1000);
-  EXPECT_THAT(res, StrEq(t3));
+  EXPECT_THAT(res.c_str(), StrEq(t3.c_str()));
   EXPECT_THAT(res.size(), Eq(10));
 }
 
@@ -123,7 +123,7 @@ TEST(SerializeText, CArraySerializesTextLength)
 
   EXPECT_THAT(ctx.getBufferSize(),
               Eq(ctx.containerSizeSerializedBytesCount(CARR_LENGTH) +
-                 eastl::char_traits<char>::length(t1)));
+                 eastl::CharStrlen(t1)));
 
   EXPECT_THAT(r1, StrEq(t1));
   EXPECT_THAT(r1, ContainerEq(t1));

@@ -137,8 +137,7 @@ public:
   eastl::unique_ptr<TSerializer> ser{};
   eastl::unique_ptr<TDeserializer> des{};
 
-  template<typename T = Context,
-           typename eastl::enable_if<eastl::is_void<T>::value>::type* = nullptr>
+  template<typename T = Context, typename eastl::enable_if<eastl::is_void<T>::value>::type* = nullptr>
   TSerializer& createSerializer()
   {
     if (!ser) {
@@ -148,8 +147,7 @@ public:
   }
 
   template<typename T = Context>
-  TSerializer& createSerializer(
-    typename eastl::enable_if<!eastl::is_void<T>::value, T>::type& ctx)
+  TSerializer& createSerializer(typename eastl::enable_if<!eastl::is_void<T>::value, T>::type& ctx)
   {
     if (!ser) {
       ser = eastl::unique_ptr<TSerializer>(new TSerializer{ ctx, buf });
@@ -157,8 +155,7 @@ public:
     return *ser;
   }
 
-  template<typename T = Context,
-           typename eastl::enable_if<eastl::is_void<T>::value>::type* = nullptr>
+  template<typename T = Context, typename eastl::enable_if<eastl::is_void<T>::value>::type* = nullptr>
   TDeserializer& createDeserializer()
   {
     size_t writtenBytes = 0;
@@ -183,8 +180,7 @@ public:
       writtenBytes = ser->adapter().writtenBytesCount();
     }
     if (!des) {
-      des = eastl::unique_ptr<TDeserializer>(
-        new TDeserializer{ ctx, buf.begin(), writtenBytes });
+      des = eastl::unique_ptr<TDeserializer>(new TDeserializer{ ctx, buf.begin(), writtenBytes });
     }
     return *des;
   }

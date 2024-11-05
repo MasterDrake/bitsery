@@ -23,7 +23,28 @@
 #include "serialization_test_utils.h"
 #include <gmock/gmock.h>
 
-#if __cplusplus > 201402L
+void* __cdecl operator new[](size_t size, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
+void* __cdecl operator new[](size_t size, size_t alignement, size_t offset, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+{
+	(void)name;
+	(void)alignement;
+	(void)offset;
+	(void)flags;
+	(void)debugFlags;
+	(void)file;
+	(void)line;
+	return new uint8_t[size];
+}
+
 
 using testing::Eq;
 
@@ -34,7 +55,6 @@ using OverloadValue = bitsery::ext::OverloadValue<T, N>;
 
 TEST(SerializeExtensionEastlVariant, UseSerializeFunction)
 {
-
   eastl::variant<MyStruct1, MyStruct2> t1{ MyStruct1{ 978, 15 } };
   eastl::variant<MyStruct1, MyStruct2> r1{ MyStruct2{} };
   SerializationContext ctx;
@@ -43,12 +63,9 @@ TEST(SerializeExtensionEastlVariant, UseSerializeFunction)
   EXPECT_THAT(t1, Eq(r1));
 }
 
-TEST(SerializeExtensionEastlVariant,
-     WhenTwoIndicesWithSameTypeThenDeserializeCorrectIndex)
+TEST(SerializeExtensionEastlVariant, WhenTwoIndicesWithSameTypeThenDeserializeCorrectIndex)
 {
-
-  eastl::variant<MyStruct1, MyStruct2, MyStruct1> t1{ eastl::in_place_index_t<2>{},
-                                                    MyStruct1{ 978, 15 } };
+  eastl::variant<MyStruct1, MyStruct2, MyStruct1> t1{ eastl::in_place<2>, MyStruct1{ 978, 15 } };
   eastl::variant<MyStruct1, MyStruct2, MyStruct1> r1{ MyStruct2{} };
   SerializationContext ctx;
   ctx.createSerializer().ext(t1, bitsery::ext::EastlVariant{});

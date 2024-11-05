@@ -56,7 +56,7 @@
 #include <gmock/gmock.h>
 
 #include <atomic>
-#include <utility>
+#include <EASTL/utility.h>
 
 using testing::Eq;
 

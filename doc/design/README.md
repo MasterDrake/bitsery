@@ -40,7 +40,7 @@ But do it on your own risk, and static assert using *assertFundamentalTypeSizes*
 * **Optimized for speed and space.** library itself doesn't do any allocations so data writing/reading is fast as memcpy to/from your buffer.
 It also doesn't serialize any type information, all information needed is written in your code!
 * **No code generation required: no IDL or metadata** since it doesn't support any other formats except binary, it doesn't need any metadata.
-* **Configurable runtime error checking on deserialization** library designed to be save with untrusted network data, that's why all overloads that work on containers has *maxSize* value, unless container is static size like *std::array*.
+* **Configurable runtime error checking on deserialization** library designed to be save with untrusted network data, that's why all overloads that work on containers has *maxSize* value, unless container is static size like *eastl::array*.
 This way bitsery ensures that no malicious data crash you. BUT, if you trust your data then you can simply disable error checks for better performance.
 * **Supports forward/backward compatibility for your types** library provides access for buffer input/output adapters to directly change read/write position on the buffer.
 *Growable* extension use this capability to allow forward/backward compatibility.

@@ -142,13 +142,13 @@ TEST(SerializeObject, GeneralConceptTest)
   EXPECT_THAT(yres.vx, ContainerEq(y.vx));
   EXPECT_THAT(yres.arr, ContainerEq(y.arr));
   EXPECT_THAT(yres.carr, ContainerEq(y.carr));
-  EXPECT_THAT(yres.s, StrEq(y.s));
+  EXPECT_THAT(yres.s.c_str(), StrEq(y.s.c_str()));
 
   EXPECT_THAT(zres.y.y, Eq(z.y.y));
   EXPECT_THAT(zres.y.vx, ContainerEq(z.y.vx));
   EXPECT_THAT(zres.y.arr, ContainerEq(z.y.arr));
   EXPECT_THAT(zres.y.carr, ContainerEq(z.y.carr));
-  EXPECT_THAT(zres.y.s, StrEq(z.y.s));
-  EXPECT_THAT(zres.x.s, StrEq(z.x.s));
+  EXPECT_THAT(zres.y.s.c_str(), StrEq(z.y.s.c_str()));
+  EXPECT_THAT(zres.x.s.c_str(), StrEq(z.x.s.c_str()));
   EXPECT_THAT(zres.x.x, Eq(z.x.x));
 }

@@ -23,7 +23,7 @@ namespace bitsery {
             template<typename Des, typename T, typename Fnc>
             void deserialize(Des &des, T &v, Fnc &&fnc) const {
                 size_t version{};
-                details::readSize(des.adapter(), version, 0u, std::false_type{});
+                details::readSize(des.adapter(), version, 0u, eastl::false_type{});
                 fnc(des, v, version);
             }
 

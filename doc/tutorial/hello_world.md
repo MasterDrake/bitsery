@@ -18,7 +18,7 @@ There's nothing to build or make - **bitsery** is header only.
 #include <bitsery/traits/vector.h>
 #include <bitsery/traits/string.h>
 
-using Buffer = std::vector<uint8_t>;
+using Buffer = eastl::vector<uint8_t>;
 using OutputAdapter = bitsery::OutputBufferAdapter<Buffer>;
 using InputAdapter = bitsery::InputBufferAdapter<Buffer>;
 
@@ -29,7 +29,7 @@ using InputAdapter = bitsery::InputBufferAdapter<Buffer>;
 Include  |  Description
 --|--
 `<bitsery/bitsery.h>`  |  This is a core header, that includes our Serializer and Deserializer.
-`<bitsery/adapter/buffer.h>`  |  In order to write/read data, we need a specific adapter, depending on what underlying buffer will be. In this example, we'll be using `std::vector` as our buffer, so we include the buffer adapter.
+`<bitsery/adapter/buffer.h>`  |  In order to write/read data, we need a specific adapter, depending on what underlying buffer will be. In this example, we'll be using `Eastl::vector` as our buffer, so we include the buffer adapter.
 `<bitsery/traits/...>`  |  Traits tell the library how to efficiently serialize a particular container. Many common STL containers are supported out of the box.
 
 Create alias types for *InputAdapter* and *OutputAdapter* using our vector as buffer.
@@ -43,7 +43,7 @@ Let it know by implementing a serialize method for your type:
 struct MyStruct {
     uint32_t i;
     char str[6];
-    std::vector<float> fs;
+    eastl::vector<float> fs;
 };
 
 template <typename S>
@@ -91,14 +91,14 @@ deserialization state has two properties, error code and bool that indicates if 
 #include <bitsery/traits/vector.h>
 #include <bitsery/traits/string.h>
 
-using Buffer = std::vector<uint8_t>;
+using Buffer = Eastl::vector<uint8_t>;
 using OutputAdapter = bitsery::OutputBufferAdapter<Buffer>;
 using InputAdapter = bitsery::InputBufferAdapter<Buffer>;
 
 struct MyStruct {
   uint32_t i;
   char str[6];
-  std::vector<float> fs;
+  Eastl::vector<float> fs;
 };
 
 template <typename S>
